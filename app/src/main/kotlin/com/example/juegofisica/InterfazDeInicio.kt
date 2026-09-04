@@ -17,19 +17,16 @@ class InterfazDeInicio : Application() {
     /** Referencia al stage principal para controlar la navegación entre pantallas. */
     private lateinit var primaryStage: Stage
 
+    /** Referencia a la escena del menú principal para poder volver a ella. */
+    private lateinit var menuScene: Scene
+
     override fun start(stage: Stage) {
         primaryStage = stage
-        mostrarMenuPrincipal()
+        // Crear y guardar la escena del menú
+        menuScene = crearEscenaMenu()
+        primaryStage.scene = menuScene
         primaryStage.title = "Juego Educativo de Física"
         primaryStage.show()
-    }
-
-    /**
-     * Restaura la escena del menú principal en el stage.
-     * Las pantallas secundarias invocan este método al presionar "Volver atrás".
-     */
-    fun mostrarMenuPrincipal() {
-        primaryStage.scene = crearEscenaMenu()
     }
 
     /**
@@ -58,15 +55,22 @@ class InterfazDeInicio : Application() {
                 primaryStage.title = "Tiro Oblicuo"
             },
             onMRUV = {
-                val pantallaMruv = PantallaMRUV(
-                    onVolver = { mostrarMenuPrincipal() }
-                )
-                primaryStage.scene = pantallaMruv.crearEscena()
+                // Instanciar PantallaMRUV pasando el Stage y la escena del menú
+                val pantallaMRUV = PantallaMRUV(primaryStage, menuScene)
+                primaryStage.scene = pantallaMRUV.crearEscena()
                 primaryStage.title = "MRUV"
             }
         )
         root.children.add(menuButtonsSection.construir())
 
         return Scene(root, 400.0, 300.0)
+    }
+
+    /**
+     * Restaura la escena del menú principal en el stage.
+     * Las pantallas secundarias invocan este método al presionar "Volver atrás".
+     */
+    private fun mostrarMenuPrincipal() {
+        primaryStage.scene = menuScene
     }
 }

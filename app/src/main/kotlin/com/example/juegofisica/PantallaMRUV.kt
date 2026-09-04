@@ -9,23 +9,35 @@ import javafx.scene.image.ImageView
 import javafx.scene.layout.StackPane
 import javafx.scene.text.Font
 import javafx.scene.text.FontWeight
+import javafx.stage.Stage
 
 /**
  * Pantalla que se muestra al seleccionar "MRUV" desde el menú principal.
- * Utiliza una imagen JPG como fondo y superpone un botón para volver al menú.
  *
- * @param onVolver función que se ejecuta al presionar "Volver atrás",
- *                 restaura la escena del menú principal en el Stage
+ * Encapsula todo el estado y comportamiento de esta vista bajo el paradigma
+ * de POO: las dependencias (Stage principal y escena del menú) se inyectan a
+ * través del constructor primario, y la lógica de navegación se resuelve
+ * internamente usando la referencia al Stage.
+ *
+ * @property stage el Stage principal de la aplicación, usado para
+ *                 cambiar entre escenas y volver al menú.
+ * @property menuScene la Scene del menú principal a la que se regresa al
+ *                     presionar el botón "Volver atrás".
  */
-class PantallaMRUV(private val onVolver: () -> Unit) {
+class PantallaMRUV(
+    private val stage: Stage,
+    private val menuScene: Scene
+) {
 
     /**
-     * Crea y devuelve la Scene correspondiente a la pantalla de MRUV.
-     * Carga la imagen de fondo y coloca el botón "Volver atrás" en la
-     * esquina superior izquierda sobre la imagen.
+     * Construye y devuelve la Scene de la pantalla de MRUV.
+     * Carga la imagen de fondo, la hace responsive y superpone el botón
+     * "Volver atrás" en la esquina superior izquierda.
+     *
+     * @return la Scene lista para asignarse al Stage principal.
      */
     fun crearEscena(): Scene {
-        // Contenedor principal que ocupa toda la ventana
+        // Contenedor raíz que ocupa toda la ventana y apila los elementos
         val root = StackPane()
 
         // Cargar la imagen de fondo desde los recursos del proyecto
@@ -34,7 +46,7 @@ class PantallaMRUV(private val onVolver: () -> Unit) {
         // ImageView que muestra la imagen ajustada al tamaño de la ventana
         val imageView = ImageView(imagenFondo).apply {
             isPreserveRatio = false
-            // Vincular el ancho y alto del ImageView al tamaño del StackPane
+            // Vincular ancho y alto al tamaño del StackPane para ser responsive
             fitWidthProperty().bind(root.widthProperty())
             fitHeightProperty().bind(root.heightProperty())
         }
@@ -55,10 +67,11 @@ class PantallaMRUV(private val onVolver: () -> Unit) {
                         "-fx-border-color: #666666; -fx-border-radius: 5; " +
                         "-fx-background-radius: 5; -fx-padding: 8 16;"
             }
-            setOnAction { onVolver() }
+            // Al hacer clic se restaura la escena del menú principal en el Stage
+            setOnAction { stage.scene = menuScene }
         }
 
-        // Apilar los elementos: la imagen de fondo primero y el botón encima
+        // Apilar: primero la imagen de fondo y encima el botón
         root.children.addAll(imageView, btnVolver)
 
         // Posicionar el botón en la esquina superior izquierda con un margen
