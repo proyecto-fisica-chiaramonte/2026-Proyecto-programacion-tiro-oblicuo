@@ -8,33 +8,65 @@ import javafx.scene.layout.VBox
 import javafx.stage.Stage
 
 /**
- * Clase principal de la aplicación JavaFX.
- * Extiende Application y configura la ventana inicial del juego educativo de física.
+ * Pantalla de inicio del juego educativo de física.
+ * Muestra el encabezado de bienvenida y los botones de selección de juego.
+ * Implementa la navegación cambiando la scene del primaryStage.
  */
 class InterfazDeInicio : Application() {
 
-    override fun start(primaryStage: Stage) {
-        // Contenedor principal: VBox centrado con espaciado y padding
+    /** Referencia al stage principal para controlar la navegación entre pantallas. */
+    private lateinit var primaryStage: Stage
+
+    override fun start(stage: Stage) {
+        primaryStage = stage
+        mostrarMenuPrincipal()
+        primaryStage.title = "Juego Educativo de Física"
+        primaryStage.show()
+    }
+
+    /**
+     * Restaura la escena del menú principal en el stage.
+     * Las pantallas secundarias invocan este método al presionar "Volver atrás".
+     */
+    fun mostrarMenuPrincipal() {
+        primaryStage.scene = crearEscenaMenu()
+    }
+
+    /**
+     * Crea y devuelve la Scene del menú principal con el encabezado y los botones.
+     * Se reutiliza tanto al iniciar la app como al volver desde pantallas secundarias.
+     */
+    private fun crearEscenaMenu(): Scene {
+        // Contenedor principal con espaciado y alineación centrada
         val root = VBox(20.0).apply {
             alignment = Pos.CENTER
             padding = Insets(20.0)
             styleClass.add("root-container")
         }
 
-        // Sección del encabezado (título + subtítulo)
+        // Sección del encabezado con título y subtítulo
         val headerSection = HeaderSection()
         root.children.add(headerSection.construir())
 
-        // Sección de botones del menú
-        val menuButtonsSection = MenuButtonsSection()
+        // Sección de botones con lambdas de navegación
+        val menuButtonsSection = MenuButtonsSection(
+            onTiroOblicuo = {
+                val pantallaTiro = PantallaTiroOblicuo(
+                    onVolver = { mostrarMenuPrincipal() }
+                )
+                primaryStage.scene = pantallaTiro.crearEscena()
+                primaryStage.title = "Tiro Oblicuo"
+            },
+            onMRUV = {
+                val pantallaMruv = PantallaMRUV(
+                    onVolver = { mostrarMenuPrincipal() }
+                )
+                primaryStage.scene = pantallaMruv.crearEscena()
+                primaryStage.title = "MRUV"
+            }
+        )
         root.children.add(menuButtonsSection.construir())
 
-        // Crear escena con dimensiones 400x300
-        val scene = Scene(root, 400.0, 300.0)
-
-        // Configurar y mostrar la ventana principal
-        primaryStage.title = "Juego Educativo de Física"
-        primaryStage.scene = scene
-        primaryStage.show()
+        return Scene(root, 400.0, 300.0)
     }
 }
