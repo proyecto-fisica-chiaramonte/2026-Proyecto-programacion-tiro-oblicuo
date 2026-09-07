@@ -14,15 +14,12 @@ import javafx.stage.Stage
 /**
  * Pantalla que se muestra al seleccionar "MRUV" desde el menú principal.
  *
- * Encapsula todo el estado y comportamiento de esta vista bajo el paradigma
- * de POO: las dependencias (Stage principal y escena del menú) se inyectan a
- * través del constructor primario, y la lógica de navegación se resuelve
- * internamente usando la referencia al Stage.
+ * Utiliza una imagen JPG como fondo, superpone un botón "Volver atrás" en la
+ * esquina superior izquierda y un botón "REGLAS" en la esquina superior derecha.
+ * Al presionar "REGLAS" se muestra un cuadro emergente con las reglas de MRUV.
  *
- * @property stage el Stage principal de la aplicación, usado para
- *                 cambiar entre escenas y volver al menú.
- * @property menuScene la Scene del menú principal a la que se regresa al
- *                     presionar el botón "Volver atrás".
+ * @property stage el Stage principal de la aplicación, usado para volver al menú.
+ * @property menuScene la Scene del menú principal a la que se regresa.
  */
 class PantallaMRUV(
     private val stage: Stage,
@@ -30,9 +27,8 @@ class PantallaMRUV(
 ) {
 
     /**
-     * Construye y devuelve la Scene de la pantalla de MRUV.
-     * Carga la imagen de fondo, la hace responsive y superpone el botón
-     * "Volver atrás" en la esquina superior izquierda.
+     * Construye y devuelve la Scene de la pantalla de MRUV con la imagen de
+     * fondo, los botones de navegación y el cuadro de reglas integrado.
      *
      * @return la Scene lista para asignarse al Stage principal.
      */
@@ -51,7 +47,7 @@ class PantallaMRUV(
             fitHeightProperty().bind(root.heightProperty())
         }
 
-        // Botón para volver al menú principal
+        // Botón para volver al menú principal (esquina superior izquierda)
         val btnVolver = Button("Volver atrás").apply {
             font = Font.font("System", FontWeight.NORMAL, 14.0)
             style = "-fx-background-color: #333333; -fx-text-fill: white; " +
@@ -67,16 +63,45 @@ class PantallaMRUV(
                         "-fx-border-color: #666666; -fx-border-radius: 5; " +
                         "-fx-background-radius: 5; -fx-padding: 8 16;"
             }
-            // Al hacer clic se restaura la escena del menú principal en el Stage
             setOnAction { stage.scene = menuScene }
         }
 
-        // Apilar: primero la imagen de fondo y encima el botón
-        root.children.addAll(imageView, btnVolver)
+        // Botón para mostrar reglas de MRUV (esquina superior derecha)
+        val btnReglas = Button("REGLAS").apply {
+            font = Font.font("System", FontWeight.BOLD, 14.0)
+            style = "-fx-background-color: #1a1a1a; -fx-text-fill: #FFD700; " +
+                    "-fx-border-color: #FFD700; -fx-border-radius: 5; " +
+                    "-fx-background-radius: 5; -fx-padding: 8 16;"
+            onMouseEntered = {
+                style = "-fx-background-color: #2a2a00; -fx-text-fill: #FFD700; " +
+                        "-fx-border-color: #FFAA00; -fx-border-radius: 5; " +
+                        "-fx-background-radius: 5; -fx-padding: 8 16;"
+            }
+            onMouseExited = {
+                style = "-fx-background-color: #1a1a1a; -fx-text-fill: #FFD700; " +
+                        "-fx-border-color: #FFD700; -fx-border-radius: 5; " +
+                        "-fx-background-radius: 5; -fx-padding: 8 16;"
+            }
+        }
 
-        // Posicionar el botón en la esquina superior izquierda con un margen
+        // Cuadro emergente de reglas (centrado, inicialmente oculto)
+        val cuadroReglas = CuadroReglas()
+
+        // Al hacer clic en REGLAS se muestra el cuadro de reglas
+        btnReglas.setOnAction { cuadroReglas.mostrar() }
+
+        // Apilar: imagen de fondo, botones y cuadro de reglas
+        root.children.addAll(imageView, btnVolver, btnReglas, cuadroReglas.contenedor)
+
+        // Posicionar botones y cuadro en sus esquinas respectivas
         StackPane.setAlignment(btnVolver, Pos.TOP_LEFT)
         StackPane.setMargin(btnVolver, Insets(15.0))
+
+        StackPane.setAlignment(btnReglas, Pos.TOP_RIGHT)
+        StackPane.setMargin(btnReglas, Insets(15.0))
+
+        // El cuadro de reglas se centra sobre la imagen de fondo
+        StackPane.setAlignment(cuadroReglas.contenedor, Pos.CENTER)
 
         return Scene(root, 400.0, 300.0)
     }
