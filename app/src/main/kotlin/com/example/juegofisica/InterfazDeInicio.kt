@@ -55,10 +55,10 @@ class InterfazDeInicio : Application() {
                 primaryStage.title = "Tiro Oblicuo"
             },
             onMRUV = {
-                // Instanciar PantallaMRUV pasando el Stage y la escena del menú
-                val pantallaMRUV = PantallaMRUV(primaryStage, menuScene)
-                primaryStage.scene = pantallaMRUV.crearEscena()
-                primaryStage.title = "MRUV"
+                // Ir primero a la pantalla de explicación del nivel MRUV
+                val pantallaExplicacion = PantallaExplicacionMRUV(primaryStage, menuScene)
+                primaryStage.scene = pantallaExplicacion.crearEscena()
+                primaryStage.title = "Instrucciones MRUV"
             }
         )
         root.children.add(menuButtonsSection.construir())
