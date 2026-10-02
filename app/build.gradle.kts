@@ -32,3 +32,7 @@ application {
 tasks.named<Test>("test") {
     useJUnitPlatform()
 }
+
+tasks.named<JavaExec>("run") {
+    notCompatibleWithConfigurationCache("JavaFX plugin no es compatible con configuration cache")
+}

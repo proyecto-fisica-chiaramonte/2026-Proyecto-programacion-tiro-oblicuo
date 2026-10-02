@@ -84,7 +84,7 @@ class PantallaExplicacionMRUV(
             setOnAction { stage.scene = menuScene }
         }
 
-        // Botón para comenzar el juego de MRUV
+        // Botón para avanzar a la selección de dificultad
         val btnComenzar = Button("Comenzar").apply {
             font = Font.font("System", FontWeight.BOLD, 14.0)
             style = "-fx-background-color: #005500; -fx-text-fill: #00FF00; " +
@@ -101,9 +101,9 @@ class PantallaExplicacionMRUV(
                         "-fx-background-radius: 5; -fx-padding: 10 20;"
             }
             setOnAction {
-                val pantallaMRUV = PantallaMRUV(stage, menuScene)
-                stage.scene = pantallaMRUV.crearEscena()
-                stage.title = "MRUV"
+                val pantallaDificultad = PantallaDificultadMRUV(stage, menuScene)
+                stage.scene = pantallaDificultad.crearEscena()
+                stage.title = "Dificultad MRUV"
             }
         }
 
