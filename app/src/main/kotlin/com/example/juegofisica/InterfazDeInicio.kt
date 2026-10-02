@@ -9,7 +9,7 @@ import javafx.stage.Stage
 
 /**
  * Pantalla de inicio del juego educativo de física.
- * Muestra el encabezado de bienvenida y los botones de selección de juego.
+ * Muestra el encabezado de bienvenida y el acceso al nivel MRUV.
  * Implementa la navegación cambiando la scene del primaryStage.
  */
 class InterfazDeInicio : Application() {
@@ -30,7 +30,7 @@ class InterfazDeInicio : Application() {
     }
 
     /**
-     * Crea y devuelve la Scene del menú principal con el encabezado y los botones.
+     * Crea y devuelve la Scene del menú principal con el encabezado y el botón de inicio.
      * Se reutiliza tanto al iniciar la app como al volver desde pantallas secundarias.
      */
     private fun crearEscenaMenu(): Scene {
@@ -45,17 +45,10 @@ class InterfazDeInicio : Application() {
         val headerSection = HeaderSection()
         root.children.add(headerSection.construir())
 
-        // Sección de botones con lambdas de navegación
+        // Sección de botones con navegación a MRUV
         val menuButtonsSection = MenuButtonsSection(
-            onTiroOblicuo = {
-                val pantallaTiro = PantallaTiroOblicuo(
-                    onVolver = { mostrarMenuPrincipal() }
-                )
-                primaryStage.scene = pantallaTiro.crearEscena()
-                primaryStage.title = "Tiro Oblicuo"
-            },
             onMRUV = {
-                // Ir primero a la pantalla de explicación del nivel MRUV
+                // Ir a la pantalla de explicación del nivel MRUV
                 val pantallaExplicacion = PantallaExplicacionMRUV(primaryStage, menuScene)
                 primaryStage.scene = pantallaExplicacion.crearEscena()
                 primaryStage.title = "Instrucciones MRUV"
@@ -64,13 +57,5 @@ class InterfazDeInicio : Application() {
         root.children.add(menuButtonsSection.construir())
 
         return Scene(root, 400.0, 300.0)
-    }
-
-    /**
-     * Restaura la escena del menú principal en el stage.
-     * Las pantallas secundarias invocan este método al presionar "Volver atrás".
-     */
-    private fun mostrarMenuPrincipal() {
-        primaryStage.scene = menuScene
     }
 }
