@@ -16,7 +16,8 @@ import javafx.stage.Stage
  *
  * Utiliza una imagen JPG como fondo, superpone un botón "Volver atrás" en la
  * esquina superior izquierda y un botón "REGLAS" en la esquina superior derecha.
- * Al presionar "REGLAS" se muestra un cuadro emergente con las reglas de MRUV.
+ * Al presionar "REGLAS" se muestra un cuadro emergente con la fórmula de MRUV:
+ * t = √(2 · d / a).
  *
  * @property stage el Stage principal de la aplicación, usado para volver al menú.
  * @property menuScene la Scene del menú principal a la que se regresa.
@@ -84,8 +85,8 @@ class PantallaMRUV(
             }
         }
 
-        // Cuadro emergente de reglas (centrado, inicialmente oculto)
-        val cuadroReglas = CuadroReglas()
+        // Cuadro emergente de reglas (centrado, inicialmente oculto) con la fórmula de MRUV
+        val cuadroReglas = CuadroReglas("t = √(2 · d / a)")
 
         // Al hacer clic en REGLAS se muestra el cuadro de reglas
         btnReglas.setOnAction { cuadroReglas.mostrar() }

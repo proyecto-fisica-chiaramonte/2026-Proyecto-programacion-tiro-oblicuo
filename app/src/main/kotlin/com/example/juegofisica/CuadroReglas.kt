@@ -16,15 +16,19 @@ import javafx.scene.text.Text
  * oculto, se muestra al presionar el botón "REGLAS" y se oculta al presionar
  * "Cerrar".
  *
- * Muestra únicamente la fórmula t = d / v en texto blanco sobre fondo negro.
+ * Muestra la fórmula de MRUV en texto blanco sobre fondo negro.
+ *
+ * @param formulaTexto texto de la fórmula a mostrar en el cuadro.
  */
-class CuadroReglas {
+class CuadroReglas(
+    private val formulaTexto: String = "t = √(2 · d / a)"
+) {
 
     /** VBox raíz del cuadro que contiene todo el contenido visual. */
     val contenedor: VBox = VBox(15.0).apply {
         alignment = Pos.CENTER
-        padding = Insets(30.0)
-        maxWidth = 220.0
+        padding = Insets(20.0, 25.0, 20.0, 25.0)
+        maxWidth = 260.0
         maxHeight = 140.0
         style = "-fx-background-color: #000000; " +
                 "-fx-border-color: #555555; " +
@@ -36,8 +40,8 @@ class CuadroReglas {
     }
 
     /** Fórmula matemática de MRUV centrada y en texto blanco. */
-    private val formula = Text("t = d / v").apply {
-        font = Font.font("System", FontWeight.BOLD, 24.0)
+    private val formula = Text(formulaTexto).apply {
+        font = Font.font("System", FontWeight.BOLD, 22.0)
         fill = Color.WHITE
     }
 
