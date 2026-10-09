@@ -186,11 +186,12 @@ class PantallaModoDificil(
                 if (tiempoRestanteSegundos > 0) {
                     tiempoRestanteSegundos--
                     lblContador.text = formatearTiempo(tiempoRestanteSegundos)
-                } else {
-                    timeline?.stop()
-                    lblContador.text = "00:00"
-                    lblContador.textFill = Color.web("#FF4444")
-                    pantallaDerrota.mostrar()
+                    // Al llegar a 00:00: detener y reutilizar PantallaDerrotaMRUV (mismo overlay del modo fácil)
+                    if (tiempoRestanteSegundos == 0) {
+                        timeline?.stop()
+                        lblContador.textFill = Color.web("#FF4444")
+                        pantallaDerrota.mostrar()
+                    }
                 }
             })
         ).apply {
