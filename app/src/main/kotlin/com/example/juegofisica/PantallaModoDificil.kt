@@ -1,9 +1,12 @@
 package com.example.juegofisica
 
+import javafx.animation.KeyFrame
+import javafx.animation.Timeline
 import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.Scene
 import javafx.scene.control.Button
+import javafx.scene.control.Label
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.StackPane
@@ -13,14 +16,17 @@ import javafx.scene.text.Font
 import javafx.scene.text.FontWeight
 import javafx.scene.text.Text
 import javafx.stage.Stage
+import javafx.util.Duration
 
 /**
  * Pantalla correspondiente al modo difícil del nivel MRUV.
  *
  * Utiliza una imagen JPG como fondo que se adapta al tamaño de la ventana,
  * superpone un botón para volver al menú en la esquina superior izquierda,
- * un botón "REGLAS" en la esquina superior derecha y un cuadro emergente
- * centrado con las fórmulas principales del MRUV.
+ * un botón "REGLAS" en la esquina superior derecha, inicia automáticamente
+ * la cuenta regresiva desde 2 minutos, muestra el texto del temporizador en
+ * la esquina inferior izquierda y un cuadro emergente centrado con las
+ * fórmulas principales del MRUV.
  *
  * @property stage el Stage principal de la aplicación, usado para volver al menú.
  * @property menuScene la Scene del menú principal a la que se regresa.
@@ -30,9 +36,19 @@ class PantallaModoDificil(
     private val menuScene: Scene
 ) {
 
+    /** Duración fija de la partida en el modo difícil (2 minutos). */
+    private val tiempoInicialSegundos: Int = 120
+
+    /** Segundos restantes de la partida en curso. */
+    var tiempoRestanteSegundos: Int = 120
+
+    /** Temporizador de cuenta regresiva de la partida. */
+    private var timeline: Timeline? = null
+
     /**
      * Construye y devuelve la Scene de la pantalla de modo difícil con la imagen de
-     * fondo, los botones de navegación y el cuadro de reglas integrado.
+     * fondo, los botones de navegación, el temporizador iniciado automáticamente y el
+     * cuadro de reglas integrado.
      *
      * @return la Scene lista para asignarse al Stage principal.
      */
@@ -67,7 +83,10 @@ class PantallaModoDificil(
                         "-fx-border-color: #666666; -fx-border-radius: 5; " +
                         "-fx-background-radius: 5; -fx-padding: 8 16;"
             }
-            setOnAction { stage.scene = menuScene }
+            setOnAction {
+                timeline?.stop()
+                stage.scene = menuScene
+            }
         }
 
         // Botón para mostrar reglas del modo difícil (esquina superior derecha)
@@ -138,14 +157,56 @@ class PantallaModoDificil(
 
         cuadroReglas.children.addAll(formula1, formula2, btnCerrar)
 
+        // Overlay de derrota: vuelve al menú principal al reiniciar
+        val pantallaDerrota = PantallaDerrotaMRUV(
+            onReiniciar = {
+                timeline?.stop()
+                stage.scene = menuScene
+                stage.title = "Juego Educativo de Física"
+            }
+        )
+
         // Al hacer clic en REGLAS se muestra el cuadro de reglas
         btnReglas.setOnAction {
             cuadroReglas.isVisible = true
             cuadroReglas.isManaged = true
         }
 
-        // Apilar la imagen de fondo, botones y el cuadro de reglas
-        root.children.addAll(imageView, btnVolver, btnReglas, cuadroReglas)
+        // Temporizador de texto limpio en la esquina inferior izquierda (sin fondo ni contenedor visible)
+        val lblContador = Label(formatearTiempo(tiempoInicialSegundos)).apply {
+            font = Font.font("System", FontWeight.BOLD, 22.0)
+            textFill = Color.web("#FFD700")
+        }
+
+        // Iniciar la partida automáticamente con 2 minutos fijos
+        tiempoRestanteSegundos = tiempoInicialSegundos
+        timeline?.stop()
+        timeline = Timeline(
+            KeyFrame(Duration.seconds(1.0), {
+                if (tiempoRestanteSegundos > 0) {
+                    tiempoRestanteSegundos--
+                    lblContador.text = formatearTiempo(tiempoRestanteSegundos)
+                } else {
+                    timeline?.stop()
+                    lblContador.text = "00:00"
+                    lblContador.textFill = Color.web("#FF4444")
+                    pantallaDerrota.mostrar()
+                }
+            })
+        ).apply {
+            cycleCount = Timeline.INDEFINITE
+            play()
+        }
+
+        // Apilar: imagen de fondo, botones, temporizador, reglas y derrota
+        root.children.addAll(
+            imageView,
+            btnVolver,
+            btnReglas,
+            lblContador,
+            cuadroReglas,
+            pantallaDerrota.contenedor
+        )
 
         // Posicionar el botón de volver en la esquina superior izquierda
         StackPane.setAlignment(btnVolver, Pos.TOP_LEFT)
@@ -155,9 +216,23 @@ class PantallaModoDificil(
         StackPane.setAlignment(btnReglas, Pos.TOP_RIGHT)
         StackPane.setMargin(btnReglas, Insets(15.0))
 
-        // El cuadro de reglas se centra sobre la imagen de fondo
+        // Posicionar el temporizador en la esquina inferior izquierda
+        StackPane.setAlignment(lblContador, Pos.BOTTOM_LEFT)
+        StackPane.setMargin(lblContador, Insets(15.0))
+
+        // El cuadro de reglas y derrota se centran sobre la imagen
         StackPane.setAlignment(cuadroReglas, Pos.CENTER)
+        StackPane.setAlignment(pantallaDerrota.contenedor, Pos.CENTER)
 
         return Scene(root, 400.0, 300.0)
+    }
+
+    /**
+     * Formatea una cantidad de segundos al formato de reloj mm:ss.
+     */
+    private fun formatearTiempo(segundos: Int): String {
+        val minutos = segundos / 60
+        val segs = segundos % 60
+        return String.format("%02d:%02d", minutos, segs)
     }
 }
