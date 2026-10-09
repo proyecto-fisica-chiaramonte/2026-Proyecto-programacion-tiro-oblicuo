@@ -23,11 +23,11 @@ import javafx.util.Duration
  * Pantalla correspondiente al modo difícil del nivel MRUV.
  *
  * Utiliza una imagen JPG como fondo que se adapta al tamaño de la ventana,
- * superpone un botón para volver al menú en la esquina superior izquierda,
- * un botón "REGLAS" y una columna compacta de datos físicos (a, d, v₀, x₀) en la
- * esquina superior derecha, inicia automáticamente la cuenta regresiva desde 2 minutos,
- * muestra el texto del temporizador en la esquina inferior izquierda y un cuadro
- * emergente centrado con las fórmulas principales del MRUV.
+ * superpone un botón para volver al menú y una calculadora compacta en la
+ * esquina superior izquierda, un botón "REGLAS" y una columna de datos físicos
+ * (a, d, v₀, x₀) en la esquina superior derecha, inicia automáticamente la cuenta
+ * regresiva desde 2 minutos, muestra el texto del temporizador en la esquina
+ * inferior izquierda y un cuadro emergente centrado con las fórmulas del MRUV.
  *
  * El tiempo t no se muestra: el jugador debe calcularlo con t = √(2 · d / a)
  * y luego usarlo en x(t) = x₀ + v₀ · t + ½ · a · t².
@@ -103,6 +103,16 @@ class PantallaModoDificil(
                 timeline?.stop()
                 stage.scene = menuScene
             }
+        }
+
+        // Calculadora compacta debajo del botón Volver al Menú
+        val calculadora = CalculadoraWidget()
+
+        // Columna superior izquierda: volver + calculadora
+        val zonaIzquierda = VBox(10.0).apply {
+            alignment = Pos.TOP_LEFT
+            maxWidth = Region.USE_PREF_SIZE
+            children.addAll(btnVolver, calculadora.contenedor)
         }
 
         // Botón para mostrar reglas del modo difícil (esquina superior derecha)
@@ -243,19 +253,19 @@ class PantallaModoDificil(
             play()
         }
 
-        // Apilar: imagen de fondo, botones, panel de datos, temporizador, reglas y derrota
+        // Apilar: fondo, zona izquierda (volver + calculadora), datos, temporizador, reglas y derrota
         root.children.addAll(
             imageView,
-            btnVolver,
+            zonaIzquierda,
             zonaDerecha,
             lblContador,
             cuadroReglas,
             pantallaDerrota.contenedor
         )
 
-        // Posicionar el botón de volver en la esquina superior izquierda
-        StackPane.setAlignment(btnVolver, Pos.TOP_LEFT)
-        StackPane.setMargin(btnVolver, Insets(15.0))
+        // Posicionar volver + calculadora en la esquina superior izquierda
+        StackPane.setAlignment(zonaIzquierda, Pos.TOP_LEFT)
+        StackPane.setMargin(zonaIzquierda, Insets(15.0))
 
         // Posicionar REGLAS + panel de datos en la esquina superior derecha
         StackPane.setAlignment(zonaDerecha, Pos.TOP_RIGHT)
