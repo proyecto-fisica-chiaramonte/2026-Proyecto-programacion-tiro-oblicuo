@@ -10,7 +10,7 @@ import javafx.scene.text.FontWeight
 import javafx.scene.text.Text
 
 /**
- * Overlay de derrota del modo fácil MRUV.
+ * Overlay de derrota reutilizable para los modos fácil y difícil de MRUV.
  *
  * Se muestra centrado sobre la pantalla cuando el temporizador llega a 00:00.
  * Contiene el mensaje "FALLASTE" y un botón "Reiniciar" que permite volver
