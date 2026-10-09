@@ -109,6 +109,15 @@ class PantallaMRUV(
         // Cuadro emergente de reglas (centrado, inicialmente oculto) con la fórmula de MRUV
         val cuadroReglas = CuadroReglas("t = √(2 · d / a)")
 
+        // Overlay de derrota: vuelve al menú principal al reiniciar
+        val pantallaDerrota = PantallaDerrotaMRUV(
+            onReiniciar = {
+                timeline?.stop()
+                stage.scene = menuScene
+                stage.title = "Juego Educativo de Física"
+            }
+        )
+
         // Al hacer clic en REGLAS se muestra el cuadro de reglas
         btnReglas.setOnAction { cuadroReglas.mostrar() }
 
@@ -189,6 +198,7 @@ class PantallaMRUV(
                         timeline?.stop()
                         lblContador.text = "00:00"
                         lblContador.textFill = Color.web("#FF4444")
+                        pantallaDerrota.mostrar()
                     }
                 })
             ).apply {
@@ -208,14 +218,15 @@ class PantallaMRUV(
 
         modalTiempo.children.addAll(tituloModal, filaBotonesTiempo)
 
-        // Apilar: imagen de fondo, botones de navegación, texto del temporizador, modal de tiempo y cuadro de reglas
+        // Apilar: imagen de fondo, botones, temporizador, modal de tiempo, reglas y derrota
         root.children.addAll(
             imageView,
             btnVolver,
             btnReglas,
             lblContador,
             modalTiempo,
-            cuadroReglas.contenedor
+            cuadroReglas.contenedor,
+            pantallaDerrota.contenedor
         )
 
         // Posicionar botones en las esquinas superiores
@@ -229,9 +240,10 @@ class PantallaMRUV(
         StackPane.setAlignment(lblContador, Pos.BOTTOM_LEFT)
         StackPane.setMargin(lblContador, Insets(15.0))
 
-        // El modal de tiempo y el cuadro de reglas se centran sobre la imagen
+        // El modal de tiempo, reglas y derrota se centran sobre la imagen
         StackPane.setAlignment(modalTiempo, Pos.CENTER)
         StackPane.setAlignment(cuadroReglas.contenedor, Pos.CENTER)
+        StackPane.setAlignment(pantallaDerrota.contenedor, Pos.CENTER)
 
         return Scene(root, 400.0, 300.0)
     }
