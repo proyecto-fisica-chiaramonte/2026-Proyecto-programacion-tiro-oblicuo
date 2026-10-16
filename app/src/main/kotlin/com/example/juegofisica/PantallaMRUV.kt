@@ -10,6 +10,7 @@ import javafx.scene.control.Label
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.HBox
+import javafx.scene.layout.Region
 import javafx.scene.layout.StackPane
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
@@ -22,11 +23,11 @@ import javafx.util.Duration
 /**
  * Pantalla que se muestra al seleccionar "MRUV" desde el menú principal.
  *
- * Utiliza una imagen JPG como fondo, superpone un botón "Volver atrás" en la
- * esquina superior izquierda, un botón "REGLAS" en la esquina superior derecha,
- * un selector de tiempo inicial, el texto del temporizador en la esquina inferior
- * izquierda (sin fondo ni contenedor visible) y un cuadro emergente con la fórmula
- * de MRUV: t = √(2 · d / a).
+ * Utiliza una imagen JPG como fondo, superpone un botón "Volver al Menú" y una
+ * calculadora compacta en la esquina superior izquierda, un botón "REGLAS" en la
+ * esquina superior derecha, un selector de tiempo inicial, el texto del temporizador
+ * en la esquina inferior izquierda y un cuadro emergente con la fórmula de MRUV:
+ * t = √(2 · d / a).
  *
  * @property stage el Stage principal de la aplicación, usado para volver al menú.
  * @property menuScene la Scene del menú principal a la que se regresa.
@@ -47,7 +48,7 @@ class PantallaMRUV(
 
     /**
      * Construye y devuelve la Scene de la pantalla de MRUV con la imagen de
-     * fondo, los botones de navegación, el modal de inicio y el temporizador.
+     * fondo, los botones de navegación, la calculadora, el modal de inicio y el temporizador.
      *
      * @return la Scene lista para asignarse al Stage principal.
      */
@@ -67,7 +68,7 @@ class PantallaMRUV(
         }
 
         // Botón para volver al menú principal (esquina superior izquierda)
-        val btnVolver = Button("Volver atrás").apply {
+        val btnVolver = Button("Volver al Menú").apply {
             font = Font.font("System", FontWeight.NORMAL, 14.0)
             style = "-fx-background-color: #333333; -fx-text-fill: white; " +
                     "-fx-border-color: #666666; -fx-border-radius: 5; " +
@@ -86,6 +87,16 @@ class PantallaMRUV(
                 timeline?.stop()
                 stage.scene = menuScene
             }
+        }
+
+        // Calculadora compacta debajo del botón Volver al Menú
+        val calculadora = CalculadoraWidget()
+
+        // Columna superior izquierda: volver + calculadora
+        val zonaIzquierda = VBox(10.0).apply {
+            alignment = Pos.TOP_LEFT
+            maxWidth = Region.USE_PREF_SIZE
+            children.addAll(btnVolver, calculadora.contenedor)
         }
 
         // Botón para mostrar reglas de MRUV (esquina superior derecha)
@@ -218,10 +229,10 @@ class PantallaMRUV(
 
         modalTiempo.children.addAll(tituloModal, filaBotonesTiempo)
 
-        // Apilar: imagen de fondo, botones, temporizador, modal de tiempo, reglas y derrota
+        // Apilar: fondo, zona izquierda (volver + calculadora), botón reglas, temporizador, modal de tiempo, reglas y derrota
         root.children.addAll(
             imageView,
-            btnVolver,
+            zonaIzquierda,
             btnReglas,
             lblContador,
             modalTiempo,
@@ -229,9 +240,9 @@ class PantallaMRUV(
             pantallaDerrota.contenedor
         )
 
-        // Posicionar botones en las esquinas superiores
-        StackPane.setAlignment(btnVolver, Pos.TOP_LEFT)
-        StackPane.setMargin(btnVolver, Insets(15.0))
+        // Posicionar volver + calculadora en la esquina superior izquierda
+        StackPane.setAlignment(zonaIzquierda, Pos.TOP_LEFT)
+        StackPane.setMargin(zonaIzquierda, Insets(15.0))
 
         StackPane.setAlignment(btnReglas, Pos.TOP_RIGHT)
         StackPane.setMargin(btnReglas, Insets(15.0))
