@@ -25,11 +25,11 @@ import javafx.util.Duration
  * Utiliza una imagen JPG como fondo que se adapta al tamaño de la ventana,
  * superpone un botón para volver al menú y una calculadora compacta en la
  * esquina superior izquierda, un botón "REGLAS" y una columna de datos físicos
- * (a, d, v₀, x₀) en la esquina superior derecha, inicia automáticamente la cuenta
+ * (a, d, v, v₀, x₀) en la esquina superior derecha, inicia automáticamente la cuenta
  * regresiva desde 2 minutos, muestra el texto del temporizador en la esquina
  * inferior izquierda y un cuadro emergente centrado con las fórmulas del MRUV.
  *
- * El tiempo t no se muestra: el jugador debe calcularlo con t = √(2 · d / a)
+ * El tiempo t no se muestra: el jugador debe calcularlo con t = d / v
  * y luego usarlo en x(t) = x₀ + v₀ · t + ½ · a · t².
  *
  * @property stage el Stage principal de la aplicación, usado para volver al menú.
@@ -52,11 +52,20 @@ class PantallaModoDificil(
     /** Distancia del problema (m). */
     var distancia: Double = 0.0
 
+    /** Velocidad constante para el cálculo del tiempo (m/s). */
+    var velocidad: Double = 0.0
+
     /** Velocidad inicial del problema (m/s). */
     var velocidadInicial: Double = 0.0
 
     /** Posición inicial del problema (m). */
     var posicionInicial: Double = 0.0
+
+    /** Resultado teórico esperado de x(t). */
+    var resultadoEsperado: Double = 0.0
+
+    /** Validador de cálculo físico y comprobación matemática de MRUV. */
+    private val validador: ValidadorRespuestaMRUV = ValidadorRespuestaMRUV()
 
     /** Temporizador de cuenta regresiva de la partida. */
     private var timeline: Timeline? = null
@@ -108,11 +117,22 @@ class PantallaModoDificil(
         // Calculadora compacta debajo del botón Volver al Menú
         val calculadora = CalculadoraWidget()
 
-        // Columna superior izquierda: volver + calculadora
-        val zonaIzquierda = VBox(10.0).apply {
+        // Casilla interactiva compacta para responder x(t) ubicada justo debajo de la calculadora
+        val casillaRespuesta = CasillaRespuestaWidget(
+            onVerificar = { entrada ->
+                val esCorrecto = validador.validar(entrada, resultadoEsperado)
+                if (esCorrecto) {
+                    timeline?.stop()
+                }
+                esCorrecto
+            }
+        )
+
+        // Columna izquierda: volver + calculadora + casilla de respuesta justo debajo
+        val zonaIzquierda = VBox(6.0).apply {
             alignment = Pos.TOP_LEFT
             maxWidth = Region.USE_PREF_SIZE
-            children.addAll(btnVolver, calculadora.contenedor)
+            children.addAll(btnVolver, calculadora.contenedor, casillaRespuesta.contenedor)
         }
 
         // Botón para mostrar reglas del modo difícil (esquina superior derecha)
@@ -149,6 +169,7 @@ class PantallaModoDificil(
             children.addAll(
                 crearEtiquetaDato("a = ${aceleracion.toInt()} m/s²"),
                 crearEtiquetaDato("d = ${distancia.toInt()} m"),
+                crearEtiquetaDato("v = ${velocidad.toInt()} m/s"),
                 crearEtiquetaDato("v₀ = ${velocidadInicial.toInt()} m/s"),
                 crearEtiquetaDato("x₀ = ${posicionInicial.toInt()} m")
             )
@@ -161,55 +182,8 @@ class PantallaModoDificil(
             children.addAll(btnReglas, panelDatos)
         }
 
-        // Cuadro emergente de reglas (centrado, inicialmente oculto)
-        val cuadroReglas = VBox(12.0).apply {
-            alignment = Pos.CENTER
-            padding = Insets(20.0)
-            maxWidth = 320.0
-            maxHeight = 160.0
-            style = "-fx-background-color: #000000; " +
-                    "-fx-border-color: #555555; " +
-                    "-fx-border-width: 2; " +
-                    "-fx-border-radius: 10; " +
-                    "-fx-background-radius: 10;"
-            isVisible = false
-            isManaged = false
-        }
-
-        // Fórmulas matemáticas de MRUV para el modo difícil
-        val formula1 = Text("x(t) = x₀ + v₀ · t + ½ · a · t²").apply {
-            font = Font.font("System", FontWeight.BOLD, 17.0)
-            fill = Color.WHITE
-        }
-
-        val formula2 = Text("t = √(2 · d / a)").apply {
-            font = Font.font("System", FontWeight.BOLD, 18.0)
-            fill = Color.WHITE
-        }
-
-        // Botón para cerrar el cuadro de reglas
-        val btnCerrar = Button("Cerrar").apply {
-            font = Font.font("System", FontWeight.MEDIUM, 12.0)
-            style = "-fx-background-color: #444444; -fx-text-fill: white; " +
-                    "-fx-border-color: #777777; -fx-border-radius: 5; " +
-                    "-fx-background-radius: 5; -fx-padding: 5 14;"
-            onMouseEntered = {
-                style = "-fx-background-color: #555555; -fx-text-fill: white; " +
-                        "-fx-border-color: #999999; -fx-border-radius: 5; " +
-                        "-fx-background-radius: 5; -fx-padding: 5 14;"
-            }
-            onMouseExited = {
-                style = "-fx-background-color: #444444; -fx-text-fill: white; " +
-                        "-fx-border-color: #777777; -fx-border-radius: 5; " +
-                        "-fx-background-radius: 5; -fx-padding: 5 14;"
-            }
-            setOnAction {
-                cuadroReglas.isVisible = false
-                cuadroReglas.isManaged = false
-            }
-        }
-
-        cuadroReglas.children.addAll(formula1, formula2, btnCerrar)
+        // Cuadro emergente de reglas reutilizable con las fórmulas de MRUV
+        val cuadroReglas = CuadroReglas("x(t) = x₀ + v₀ · t + ½ · a · t²", "t = d / v")
 
         // Overlay de derrota: vuelve al menú principal al reiniciar
         val pantallaDerrota = PantallaDerrotaMRUV(
@@ -222,8 +196,7 @@ class PantallaModoDificil(
 
         // Al hacer clic en REGLAS se muestra el cuadro de reglas
         btnReglas.setOnAction {
-            cuadroReglas.isVisible = true
-            cuadroReglas.isManaged = true
+            cuadroReglas.mostrar()
         }
 
         // Temporizador de texto limpio en la esquina inferior izquierda (sin fondo ni contenedor visible)
@@ -253,17 +226,17 @@ class PantallaModoDificil(
             play()
         }
 
-        // Apilar: fondo, zona izquierda (volver + calculadora), datos, temporizador, reglas y derrota
+        // Apilar: fondo, zona izquierda (volver + calculadora + respuesta), datos, temporizador, reglas y derrota
         root.children.addAll(
             imageView,
             zonaIzquierda,
             zonaDerecha,
             lblContador,
-            cuadroReglas,
+            cuadroReglas.contenedor,
             pantallaDerrota.contenedor
         )
 
-        // Posicionar volver + calculadora en la esquina superior izquierda
+        // Posicionar volver + calculadora + respuesta en la esquina superior izquierda
         StackPane.setAlignment(zonaIzquierda, Pos.TOP_LEFT)
         StackPane.setMargin(zonaIzquierda, Insets(15.0))
 
@@ -276,27 +249,32 @@ class PantallaModoDificil(
         StackPane.setMargin(lblContador, Insets(15.0))
 
         // El cuadro de reglas y derrota se centran sobre la imagen
-        StackPane.setAlignment(cuadroReglas, Pos.CENTER)
+        StackPane.setAlignment(cuadroReglas.contenedor, Pos.CENTER)
         StackPane.setAlignment(pantallaDerrota.contenedor, Pos.CENTER)
 
         return Scene(root, 400.0, 300.0)
     }
 
     /**
-     * Genera valores enteros aleatorios para a, d, v₀ y x₀.
-     * Elige a y un tiempo entero implícito t de modo que d = a·t²/2 sea entero
-     * y √(2·d/a) resulte exacto (sin mostrar t al jugador).
+     * Genera valores enteros aleatorios para a, d, v, v₀ y x₀.
+     * Genera una velocidad v (entre 5 y 30 m/s) y un tiempo t entero de modo que
+     * d = v · t resulte un valor exacto y t = d / v sea entero y fácil de calcular.
      */
     private fun generarDatosPartida() {
-        val tiempoExacto = listOf(2, 3, 4, 5).random()
-        val opcionesAceleracion = (2..10).filter { a ->
-            (a * tiempoExacto * tiempoExacto) % 2 == 0
-        }
-        val a = opcionesAceleracion.random()
-        aceleracion = a.toDouble()
-        distancia = (a * tiempoExacto * tiempoExacto / 2).toDouble()
+        val v = (5..30).random()
+        val tiempoExacto = listOf(2, 3, 4, 5, 6, 8, 10).random()
+        velocidad = v.toDouble()
+        distancia = (v * tiempoExacto).toDouble()
+        aceleracion = (1..10).random().toDouble()
         velocidadInicial = (0..20).random().toDouble()
         posicionInicial = (0..50).random().toDouble()
+        resultadoEsperado = validador.calcularPosicionFinal(
+            posicionInicial = posicionInicial,
+            velocidadInicial = velocidadInicial,
+            aceleracion = aceleracion,
+            distancia = distancia,
+            velocidad = velocidad
+        )
     }
 
     /**
