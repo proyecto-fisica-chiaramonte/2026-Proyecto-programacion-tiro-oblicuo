@@ -122,7 +122,7 @@ class PantallaModoDificil(
             onVerificar = { entrada ->
                 val esCorrecto = validador.validar(entrada, resultadoEsperado)
                 if (esCorrecto) {
-                    timeline?.stop()
+                    mostrarVictoria()
                 }
                 esCorrecto
             }
@@ -275,6 +275,16 @@ class PantallaModoDificil(
             distancia = distancia,
             velocidad = velocidad
         )
+    }
+
+    /**
+     * Detiene el cronómetro y realiza la transición a la pantalla de victoria.
+     */
+    fun mostrarVictoria() {
+        timeline?.stop()
+        val pantallaVictoria = PantallaVictoriaMRUV(stage, menuScene)
+        stage.scene = pantallaVictoria.crearEscena()
+        stage.title = "MRUV - ¡Victoria!"
     }
 
     /**
