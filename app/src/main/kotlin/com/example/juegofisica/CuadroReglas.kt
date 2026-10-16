@@ -10,26 +10,26 @@ import javafx.scene.text.FontWeight
 import javafx.scene.text.Text
 
 /**
- * Cuadro emergente que muestra la fórmula de MRUV sobre la pantalla principal.
+ * Cuadro emergente reutilizable que muestra las fórmulas sobre la pantalla principal.
  *
  * Se superpone centrado dentro del StackPane de la pantalla. Inicialmente
  * oculto, se muestra al presionar el botón "REGLAS" y se oculta al presionar
  * "Cerrar".
  *
- * Muestra la fórmula de MRUV en texto blanco sobre fondo negro.
+ * Permite mostrar una o varias fórmulas matemáticas según la dificultad.
  *
- * @param formulaTexto texto de la fórmula a mostrar en el cuadro.
+ * @param formulasTexto textos de las fórmulas a mostrar en el cuadro de reglas.
  */
 class CuadroReglas(
-    private val formulaTexto: String = "t = √(2 · d / a)"
+    vararg formulasTexto: String = arrayOf("x(t) = x₀ + v₀ · t + ½ · a · t²", "t = d / v")
 ) {
 
     /** VBox raíz del cuadro que contiene todo el contenido visual. */
-    val contenedor: VBox = VBox(15.0).apply {
+    val contenedor: VBox = VBox(12.0).apply {
         alignment = Pos.CENTER
-        padding = Insets(20.0, 25.0, 20.0, 25.0)
-        maxWidth = 260.0
-        maxHeight = 140.0
+        padding = Insets(20.0)
+        maxWidth = 320.0
+        maxHeight = 160.0
         style = "-fx-background-color: #000000; " +
                 "-fx-border-color: #555555; " +
                 "-fx-border-width: 2; " +
@@ -37,12 +37,6 @@ class CuadroReglas(
                 "-fx-background-radius: 10;"
         isVisible = false
         isManaged = false
-    }
-
-    /** Fórmula matemática de MRUV centrada y en texto blanco. */
-    private val formula = Text(formulaTexto).apply {
-        font = Font.font("System", FontWeight.BOLD, 22.0)
-        fill = Color.WHITE
     }
 
     /** Botón para cerrar el cuadro de reglas. */
@@ -65,7 +59,15 @@ class CuadroReglas(
     }
 
     init {
-        contenedor.children.addAll(formula, btnCerrar)
+        for (formula in formulasTexto) {
+            val tamanoFuente = if (formula.length > 25) 17.0 else 18.0
+            val txtFormula = Text(formula).apply {
+                font = Font.font("System", FontWeight.BOLD, tamanoFuente)
+                fill = Color.WHITE
+            }
+            contenedor.children.add(txtFormula)
+        }
+        contenedor.children.add(btnCerrar)
     }
 
     /**
