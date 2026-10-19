@@ -1,6 +1,7 @@
 package org.example
 
 import com.example.juegofisica.ValidadorRespuestaMRUV
+import com.example.juegofisica.ValidadorTiempoMRUV
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -53,5 +54,41 @@ class AppTest {
         assertFalse(validador.validar("52.8", valorTeorico))
         assertFalse(validador.validar("abc", valorTeorico))
         assertFalse(validador.validar("", valorTeorico))
+    }
+
+    @Test
+    fun testCalculoTiempoModoFacil() {
+        val validadorTiempo = ValidadorTiempoMRUV()
+
+        // d = 16, a = 2 => t = sqrt(2 * 16 / 2) = sqrt(16) = 4.0
+        val t1 = validadorTiempo.calcularTiempo(distancia = 16.0, aceleracion = 2.0)
+        assertEquals(4.0, t1, 0.0001)
+
+        // d = 50, a = 4 => t = sqrt(2 * 50 / 4) = sqrt(25) = 5.0
+        val t2 = validadorTiempo.calcularTiempo(distancia = 50.0, aceleracion = 4.0)
+        assertEquals(5.0, t2, 0.0001)
+
+        // Parámetros inválidos
+        assertEquals(0.0, validadorTiempo.calcularTiempo(distancia = -10.0, aceleracion = 2.0))
+        assertEquals(0.0, validadorTiempo.calcularTiempo(distancia = 16.0, aceleracion = 0.0))
+        assertEquals(0.0, validadorTiempo.calcularTiempo(distancia = 16.0, aceleracion = -2.0))
+    }
+
+    @Test
+    fun testValidarTiempoModoFacilConTolerancia() {
+        val validadorTiempo = ValidadorTiempoMRUV(tolerancia = 0.1)
+        val valorTeorico = 4.0
+
+        assertTrue(validadorTiempo.validar("4", valorTeorico))
+        assertTrue(validadorTiempo.validar("4.0", valorTeorico))
+        assertTrue(validadorTiempo.validar("4,0", valorTeorico))
+        assertTrue(validadorTiempo.validar("4.08", valorTeorico))
+        assertTrue(validadorTiempo.validar("3.92", valorTeorico))
+
+        assertFalse(validadorTiempo.validar("5", valorTeorico))
+        assertFalse(validadorTiempo.validar("3.8", valorTeorico))
+        assertFalse(validadorTiempo.validar("4.2", valorTeorico))
+        assertFalse(validadorTiempo.validar("abc", valorTeorico))
+        assertFalse(validadorTiempo.validar("", valorTeorico))
     }
 }

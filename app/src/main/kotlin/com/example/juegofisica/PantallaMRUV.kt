@@ -21,13 +21,13 @@ import javafx.stage.Stage
 import javafx.util.Duration
 
 /**
- * Pantalla que se muestra al seleccionar "MRUV" desde el menú principal.
+ * Pantalla que se muestra al seleccionar "MRUV" desde el menú principal (Modo Fácil).
  *
- * Utiliza una imagen JPG como fondo, superpone un botón "Volver al Menú" y una
- * calculadora compacta en la esquina superior izquierda, un botón "REGLAS" en la
- * esquina superior derecha, un selector de tiempo inicial, el texto del temporizador
- * en la esquina inferior izquierda y un cuadro emergente con la fórmula de MRUV:
- * t = √(2 · d / a).
+ * Utiliza una imagen JPG como fondo, superpone un botón "Volver al Menú", una calculadora
+ * compacta y una casilla interactiva para responder el valor del tiempo t en la esquina
+ * superior izquierda, un botón "REGLAS" y una columna de variables físicas (a, d) en la
+ * esquina superior derecha, un selector de tiempo inicial, el texto del temporizador en la
+ * esquina inferior izquierda y un cuadro emergente con la fórmula de MRUV: t = √(2 · d / a).
  *
  * @property stage el Stage principal de la aplicación, usado para volver al menú.
  * @property menuScene la Scene del menú principal a la que se regresa.
@@ -43,12 +43,25 @@ class PantallaMRUV(
     /** Segundos restantes de la partida en curso. */
     var tiempoRestanteSegundos: Int = 180
 
+    /** Aceleración del problema (m/s²). */
+    var aceleracion: Double = 0.0
+
+    /** Distancia del problema (m). */
+    var distancia: Double = 0.0
+
+    /** Tiempo teórico esperado según la fórmula t = √(2 · d / a) en segundos. */
+    var tiempoEsperado: Double = 0.0
+
+    /** Validador de cálculo físico y comprobación matemática de tiempo en modo fácil. */
+    private val validador: ValidadorTiempoMRUV = ValidadorTiempoMRUV()
+
     /** Temporizador de cuenta regresiva de la partida. */
     private var timeline: Timeline? = null
 
     /**
      * Construye y devuelve la Scene de la pantalla de MRUV con la imagen de
-     * fondo, los botones de navegación, la calculadora, el modal de inicio y el temporizador.
+     * fondo, los botones de navegación, la calculadora, la casilla de respuesta para t,
+     * el panel de datos físicos, el modal de inicio y el temporizador.
      *
      * @return la Scene lista para asignarse al Stage principal.
      */
@@ -92,11 +105,19 @@ class PantallaMRUV(
         // Calculadora compacta debajo del botón Volver al Menú
         val calculadora = CalculadoraWidget()
 
-        // Columna superior izquierda: volver + calculadora
-        val zonaIzquierda = VBox(10.0).apply {
+        // Casilla interactiva compacta para responder el valor de t ubicada justo debajo de la calculadora
+        val casillaTiempo = CasillaTiempoWidget(
+            onVerificar = { entrada ->
+                val esCorrecto = validador.validar(entrada, tiempoEsperado)
+                esCorrecto
+            }
+        )
+
+        // Columna superior izquierda: volver + calculadora + casilla de respuesta t justo debajo
+        val zonaIzquierda = VBox(6.0).apply {
             alignment = Pos.TOP_LEFT
             maxWidth = Region.USE_PREF_SIZE
-            children.addAll(btnVolver, calculadora.contenedor)
+            children.addAll(btnVolver, calculadora.contenedor, casillaTiempo.contenedor)
         }
 
         // Botón para mostrar reglas de MRUV (esquina superior derecha)
@@ -115,6 +136,32 @@ class PantallaMRUV(
                         "-fx-border-color: #FFD700; -fx-border-radius: 5; " +
                         "-fx-background-radius: 5; -fx-padding: 8 16;"
             }
+        }
+
+        // Generar variables físicas aleatorias de modo fácil
+        generarDatosPartida()
+
+        // Columna compacta de variables físicas ubicada debajo del botón REGLAS
+        val panelDatos = VBox(4.0).apply {
+            alignment = Pos.TOP_RIGHT
+            padding = Insets(8.0, 10.0, 8.0, 10.0)
+            maxWidth = Region.USE_PREF_SIZE
+            style = "-fx-background-color: rgba(0, 0, 0, 0.75); " +
+                    "-fx-border-color: #FFD700; " +
+                    "-fx-border-width: 1; " +
+                    "-fx-border-radius: 8; " +
+                    "-fx-background-radius: 8;"
+            children.addAll(
+                crearEtiquetaDato("a = ${aceleracion.toInt()} m/s²"),
+                crearEtiquetaDato("d = ${distancia.toInt()} m")
+            )
+        }
+
+        // Columna superior derecha: botón REGLAS + panel de datos debajo, alineados a la derecha
+        val zonaDerecha = VBox(10.0).apply {
+            alignment = Pos.TOP_RIGHT
+            maxWidth = Region.USE_PREF_SIZE
+            children.addAll(btnReglas, panelDatos)
         }
 
         // Cuadro emergente de reglas (centrado, inicialmente oculto) con la fórmula de MRUV
@@ -229,23 +276,24 @@ class PantallaMRUV(
 
         modalTiempo.children.addAll(tituloModal, filaBotonesTiempo)
 
-        // Apilar: fondo, zona izquierda (volver + calculadora), botón reglas, temporizador, modal de tiempo, reglas y derrota
+        // Apilar: fondo, zona izquierda (volver + calculadora + respuesta t), zona derecha (reglas + datos), temporizador, modal de tiempo, reglas y derrota
         root.children.addAll(
             imageView,
             zonaIzquierda,
-            btnReglas,
+            zonaDerecha,
             lblContador,
             modalTiempo,
             cuadroReglas.contenedor,
             pantallaDerrota.contenedor
         )
 
-        // Posicionar volver + calculadora en la esquina superior izquierda
+        // Posicionar volver + calculadora + respuesta en la esquina superior izquierda
         StackPane.setAlignment(zonaIzquierda, Pos.TOP_LEFT)
         StackPane.setMargin(zonaIzquierda, Insets(15.0))
 
-        StackPane.setAlignment(btnReglas, Pos.TOP_RIGHT)
-        StackPane.setMargin(btnReglas, Insets(15.0))
+        // Posicionar REGLAS + datos en la esquina superior derecha
+        StackPane.setAlignment(zonaDerecha, Pos.TOP_RIGHT)
+        StackPane.setMargin(zonaDerecha, Insets(15.0))
 
         // Posicionar el temporizador en la esquina inferior izquierda
         StackPane.setAlignment(lblContador, Pos.BOTTOM_LEFT)
@@ -257,6 +305,31 @@ class PantallaMRUV(
         StackPane.setAlignment(pantallaDerrota.contenedor, Pos.CENTER)
 
         return Scene(root, 400.0, 300.0)
+    }
+
+    /**
+     * Genera valores enteros para a y d de modo que t = √(2 · d / a)
+     * resulte en un valor entero limpio para el modo fácil.
+     */
+    private fun generarDatosPartida() {
+        val tiempoExacto = listOf(2, 3, 4, 5, 6).random()
+        val opcionesAceleracion = listOf(1, 2, 4).filter { a ->
+            (a * tiempoExacto * tiempoExacto) % 2 == 0
+        }
+        val a = if (opcionesAceleracion.isNotEmpty()) opcionesAceleracion.random() else 2
+        aceleracion = a.toDouble()
+        distancia = (a * tiempoExacto * tiempoExacto / 2).toDouble()
+        tiempoEsperado = validador.calcularTiempo(distancia, aceleracion)
+    }
+
+    /**
+     * Crea una etiqueta de dato físico legible sobre el fondo oscuro del panel.
+     */
+    private fun crearEtiquetaDato(texto: String): Label {
+        return Label(texto).apply {
+            font = Font.font("System", FontWeight.BOLD, 13.0)
+            textFill = Color.web("#FFD700")
+        }
     }
 
     /**
