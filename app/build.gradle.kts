@@ -26,7 +26,7 @@ java {
 }
 
 application {
-    mainClass.set("com.example.juegofisica.AppKt")
+    mainClass.set("com.example.juegofisica.App")
 }
 
 tasks.named<Test>("test") {

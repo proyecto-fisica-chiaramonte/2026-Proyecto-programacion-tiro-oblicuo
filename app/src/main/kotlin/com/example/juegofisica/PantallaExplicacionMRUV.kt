@@ -26,14 +26,14 @@ import javafx.stage.Stage
 class PantallaExplicacionMRUV(
     private val stage: Stage,
     private val menuScene: Scene
-) {
+) : PantallaJuego {
 
     /**
      * Construye y devuelve la Scene de la pantalla de explicación MRUV.
      *
      * @return la Scene lista para asignarse al Stage principal.
      */
-    fun crearEscena(): Scene {
+    override fun crearEscena(): Scene {
         // Contenedor principal con fondo negro que centra todo el contenido
         val root = VBox(20.0).apply {
             alignment = Pos.CENTER

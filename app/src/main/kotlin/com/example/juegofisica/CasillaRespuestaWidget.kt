@@ -33,7 +33,7 @@ class CasillaRespuestaWidget(
     }
 
     /** Campo de texto reducido para ingresar únicamente números. */
-    val txtRespuesta: TextField = TextField().apply {
+    private val txtRespuesta: TextField = TextField().apply {
         promptText = "0"
         prefWidth = 64.0
         maxWidth = 68.0
@@ -56,7 +56,7 @@ class CasillaRespuestaWidget(
     }
 
     /** Botón compacto para disparar la verificación del resultado ingresado. */
-    val btnVerificar: Button = Button("Verificar").apply {
+    private val btnVerificar: Button = Button("Verificar").apply {
         font = Font.font("System", FontWeight.BOLD, 10.0)
         prefHeight = 22.0
         minHeight = 22.0
@@ -163,6 +163,18 @@ class CasillaRespuestaWidget(
         btnVerificar.style = "-fx-background-color: #330000; -fx-text-fill: #FF8888; " +
                 "-fx-border-color: #FF4444; -fx-border-radius: 4; " +
                 "-fx-background-radius: 4; -fx-padding: 2 6;"
+    }
+
+    /**
+     * Obtiene el texto actual ingresado en la casilla de respuesta.
+     */
+    fun obtenerTexto(): String = txtRespuesta.text ?: ""
+
+    /**
+     * Establece el texto ingresado en la casilla de respuesta.
+     */
+    fun establecerTexto(texto: String) {
+        txtRespuesta.text = texto
     }
 
     /**
