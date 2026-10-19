@@ -1,14 +1,10 @@
 package com.example.juegofisica
 
-import javafx.animation.KeyFrame
-import javafx.animation.Timeline
 import javafx.geometry.Insets
 import javafx.geometry.Pos
 import javafx.scene.Scene
 import javafx.scene.control.Button
 import javafx.scene.control.Label
-import javafx.scene.image.Image
-import javafx.scene.image.ImageView
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Region
 import javafx.scene.layout.StackPane
@@ -18,16 +14,17 @@ import javafx.scene.text.Font
 import javafx.scene.text.FontWeight
 import javafx.scene.text.Text
 import javafx.stage.Stage
-import javafx.util.Duration
 
 /**
- * Pantalla que se muestra al seleccionar "MRUV" desde el menú principal.
+ * Pantalla que se muestra al seleccionar "MRUV" desde el menú principal (Modo Fácil).
  *
  * Utiliza una imagen JPG como fondo, superpone un botón "Volver al Menú" y una
- * calculadora compacta en la esquina superior izquierda, un botón "REGLAS" en la
- * esquina superior derecha, un selector de tiempo inicial, el texto del temporizador
- * en la esquina inferior izquierda y un cuadro emergente con la fórmula de MRUV:
- * t = √(2 · d / a).
+ * calculadora compacta en la esquina superior izquierda, un botón "REGLAS" y una
+ * columna compacta de variables físicas (a, t, v₀, x₀) en la esquina superior derecha,
+ * un selector de tiempo inicial, el texto del temporizador en la esquina inferior izquierda
+ * y un cuadro emergente con la fórmula de posición del MRUV: x(t) = x₀ + v₀ · t + ½ · a · t².
+ *
+ * Implementa la interfaz [PantallaJuego] (LSP).
  *
  * @property stage el Stage principal de la aplicación, usado para volver al menú.
  * @property menuScene la Scene del menú principal a la que se regresa.
@@ -35,58 +32,56 @@ import javafx.util.Duration
 class PantallaMRUV(
     private val stage: Stage,
     private val menuScene: Scene
-) {
+) : PantallaJuego {
+
+    /** Proveedor reutilizable de componentes visuales (DRY). */
+    private val componentesUI: ComponentesUI = ComponentesUI()
 
     /** Tiempo límite de juego seleccionado para la partida en segundos. */
     var tiempoSeleccionadoSegundos: Int = 180
+        private set
 
     /** Segundos restantes de la partida en curso. */
     var tiempoRestanteSegundos: Int = 180
+        private set
+
+    /** Aceleración del problema (m/s²). */
+    var aceleracion: Double = 0.0
+        private set
+
+    /** Tiempo del problema (s). */
+    var tiempo: Double = 0.0
+        private set
+
+    /** Velocidad inicial del problema (m/s). */
+    var velocidadInicial: Double = 0.0
+        private set
+
+    /** Posición inicial del problema (m). */
+    var posicionInicial: Double = 0.0
+        private set
 
     /** Temporizador de cuenta regresiva de la partida. */
-    private var timeline: Timeline? = null
+    private var temporizador: TemporizadorPartida? = null
 
     /**
      * Construye y devuelve la Scene de la pantalla de MRUV con la imagen de
-     * fondo, los botones de navegación, la calculadora, el modal de inicio y el temporizador.
+     * fondo, los botones de navegación, la calculadora, el panel de datos físicos,
+     * el modal de inicio y el temporizador.
      *
      * @return la Scene lista para asignarse al Stage principal.
      */
-    fun crearEscena(): Scene {
+    override fun crearEscena(): Scene {
         // Contenedor raíz que ocupa toda la ventana y apila los elementos
         val root = StackPane()
 
-        // Cargar la imagen de fondo desde los recursos del proyecto
-        val imagenFondo = Image(javaClass.getResource("/images/fondo_mruv.jpg").toExternalForm())
-
-        // ImageView que muestra la imagen ajustada al tamaño de la ventana
-        val imageView = ImageView(imagenFondo).apply {
-            isPreserveRatio = false
-            // Vincular ancho y alto al tamaño del StackPane para ser responsive
-            fitWidthProperty().bind(root.widthProperty())
-            fitHeightProperty().bind(root.heightProperty())
-        }
+        // Imagen de fondo responsive
+        val imageView = componentesUI.crearFondoResponsive("/images/fondo_mruv.jpg", root)
 
         // Botón para volver al menú principal (esquina superior izquierda)
-        val btnVolver = Button("Volver al Menú").apply {
-            font = Font.font("System", FontWeight.NORMAL, 14.0)
-            style = "-fx-background-color: #333333; -fx-text-fill: white; " +
-                    "-fx-border-color: #666666; -fx-border-radius: 5; " +
-                    "-fx-background-radius: 5; -fx-padding: 8 16;"
-            onMouseEntered = {
-                style = "-fx-background-color: #444444; -fx-text-fill: white; " +
-                        "-fx-border-color: #888888; -fx-border-radius: 5; " +
-                        "-fx-background-radius: 5; -fx-padding: 8 16;"
-            }
-            onMouseExited = {
-                style = "-fx-background-color: #333333; -fx-text-fill: white; " +
-                        "-fx-border-color: #666666; -fx-border-radius: 5; " +
-                        "-fx-background-radius: 5; -fx-padding: 8 16;"
-            }
-            setOnAction {
-                timeline?.stop()
-                stage.scene = menuScene
-            }
+        val btnVolver = componentesUI.crearBotonVolver {
+            temporizador?.detener()
+            stage.scene = menuScene
         }
 
         // Calculadora compacta debajo del botón Volver al Menú
@@ -99,38 +94,38 @@ class PantallaMRUV(
             children.addAll(btnVolver, calculadora.contenedor)
         }
 
-        // Botón para mostrar reglas de MRUV (esquina superior derecha)
-        val btnReglas = Button("REGLAS").apply {
-            font = Font.font("System", FontWeight.BOLD, 14.0)
-            style = "-fx-background-color: #1a1a1a; -fx-text-fill: #FFD700; " +
-                    "-fx-border-color: #FFD700; -fx-border-radius: 5; " +
-                    "-fx-background-radius: 5; -fx-padding: 8 16;"
-            onMouseEntered = {
-                style = "-fx-background-color: #2a2a00; -fx-text-fill: #FFD700; " +
-                        "-fx-border-color: #FFAA00; -fx-border-radius: 5; " +
-                        "-fx-background-radius: 5; -fx-padding: 8 16;"
-            }
-            onMouseExited = {
-                style = "-fx-background-color: #1a1a1a; -fx-text-fill: #FFD700; " +
-                        "-fx-border-color: #FFD700; -fx-border-radius: 5; " +
-                        "-fx-background-radius: 5; -fx-padding: 8 16;"
-            }
-        }
-
         // Cuadro emergente de reglas (centrado, inicialmente oculto) con la fórmula de MRUV
-        val cuadroReglas = CuadroReglas("t = √(2 · d / a)")
+        val cuadroReglas = CuadroReglas("x(t) = x₀ + v₀ · t + ½ · a · t²")
+
+        // Botón para mostrar reglas de MRUV (esquina superior derecha)
+        val btnReglas = componentesUI.crearBotonReglas { cuadroReglas.mostrar() }
+
+        // Generar variables físicas aleatorias para la partida del modo fácil
+        generarDatosPartida()
+
+        // Columna compacta de variables físicas ubicada debajo del botón REGLAS
+        val panelDatos = componentesUI.crearPanelDatos(
+            componentesUI.crearEtiquetaDato("a = ${aceleracion.toInt()} m/s²"),
+            componentesUI.crearEtiquetaDato("t = ${tiempo.toInt()} s"),
+            componentesUI.crearEtiquetaDato("v₀ = ${velocidadInicial.toInt()} m/s"),
+            componentesUI.crearEtiquetaDato("x₀ = ${posicionInicial.toInt()} m")
+        )
+
+        // Columna superior derecha: botón REGLAS + panel de datos debajo, alineados a la derecha
+        val zonaDerecha = VBox(10.0).apply {
+            alignment = Pos.TOP_RIGHT
+            maxWidth = Region.USE_PREF_SIZE
+            children.addAll(btnReglas, panelDatos)
+        }
 
         // Overlay de derrota: vuelve al menú principal al reiniciar
         val pantallaDerrota = PantallaDerrotaMRUV(
             onReiniciar = {
-                timeline?.stop()
+                temporizador?.detener()
                 stage.scene = menuScene
                 stage.title = "Juego Educativo de Física"
             }
         )
-
-        // Al hacer clic en REGLAS se muestra el cuadro de reglas
-        btnReglas.setOnAction { cuadroReglas.mostrar() }
 
         // Temporizador de texto limpio en la esquina inferior izquierda (sin fondo ni contenedor visible)
         val lblContador = Label("00:00").apply {
@@ -139,6 +134,21 @@ class PantallaMRUV(
             isVisible = false
             isManaged = false
         }
+
+        // Instanciar el gestor del temporizador con callbacks limpios
+        val gestorTemporizador = TemporizadorPartida(
+            onTick = { segundos, tiempoFormateado ->
+                tiempoRestanteSegundos = segundos
+                lblContador.text = tiempoFormateado
+            },
+            onFin = {
+                tiempoRestanteSegundos = 0
+                lblContador.text = "00:00"
+                lblContador.textFill = Color.web("#FF4444")
+                pantallaDerrota.mostrar()
+            }
+        )
+        temporizador = gestorTemporizador
 
         // Modal inicial para seleccionar el tiempo de juego
         val modalTiempo = VBox(15.0).apply {
@@ -191,7 +201,7 @@ class PantallaMRUV(
         val iniciarPartida = { segundos: Int ->
             tiempoSeleccionadoSegundos = segundos
             tiempoRestanteSegundos = segundos
-            lblContador.text = formatearTiempo(tiempoRestanteSegundos)
+            lblContador.text = gestorTemporizador.formatearTiempo(segundos)
             lblContador.textFill = Color.web("#FFD700")
             lblContador.isVisible = true
             lblContador.isManaged = true
@@ -199,23 +209,7 @@ class PantallaMRUV(
             modalTiempo.isVisible = false
             modalTiempo.isManaged = false
 
-            timeline?.stop()
-            timeline = Timeline(
-                KeyFrame(Duration.seconds(1.0), {
-                    if (tiempoRestanteSegundos > 0) {
-                        tiempoRestanteSegundos--
-                        lblContador.text = formatearTiempo(tiempoRestanteSegundos)
-                    } else {
-                        timeline?.stop()
-                        lblContador.text = "00:00"
-                        lblContador.textFill = Color.web("#FF4444")
-                        pantallaDerrota.mostrar()
-                    }
-                })
-            ).apply {
-                cycleCount = Timeline.INDEFINITE
-                play()
-            }
+            gestorTemporizador.iniciar(segundos)
         }
 
         btn3Min.setOnAction { iniciarPartida(180) }
@@ -229,11 +223,11 @@ class PantallaMRUV(
 
         modalTiempo.children.addAll(tituloModal, filaBotonesTiempo)
 
-        // Apilar: fondo, zona izquierda (volver + calculadora), botón reglas, temporizador, modal de tiempo, reglas y derrota
+        // Apilar: fondo, zona izquierda (volver + calculadora), zona derecha (reglas + datos), temporizador, modal de tiempo, reglas y derrota
         root.children.addAll(
             imageView,
             zonaIzquierda,
-            btnReglas,
+            zonaDerecha,
             lblContador,
             modalTiempo,
             cuadroReglas.contenedor,
@@ -244,8 +238,9 @@ class PantallaMRUV(
         StackPane.setAlignment(zonaIzquierda, Pos.TOP_LEFT)
         StackPane.setMargin(zonaIzquierda, Insets(15.0))
 
-        StackPane.setAlignment(btnReglas, Pos.TOP_RIGHT)
-        StackPane.setMargin(btnReglas, Insets(15.0))
+        // Posicionar REGLAS + datos en la esquina superior derecha
+        StackPane.setAlignment(zonaDerecha, Pos.TOP_RIGHT)
+        StackPane.setMargin(zonaDerecha, Insets(15.0))
 
         // Posicionar el temporizador en la esquina inferior izquierda
         StackPane.setAlignment(lblContador, Pos.BOTTOM_LEFT)
@@ -260,11 +255,13 @@ class PantallaMRUV(
     }
 
     /**
-     * Formatea una cantidad de segundos al formato de reloj mm:ss.
+     * Genera valores enteros aleatorios para las variables físicas del modo fácil:
+     * a (1 a 5 m/s²), t (2 a 10 s), v₀ (0 a 15 m/s) y x₀ (0 a 20 m).
      */
-    private fun formatearTiempo(segundos: Int): String {
-        val minutos = segundos / 60
-        val segs = segundos % 60
-        return String.format("%02d:%02d", minutos, segs)
+    private fun generarDatosPartida() {
+        aceleracion = (1..5).random().toDouble()
+        tiempo = (2..10).random().toDouble()
+        velocidadInicial = (0..15).random().toDouble()
+        posicionInicial = (0..20).random().toDouble()
     }
 }

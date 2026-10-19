@@ -24,14 +24,14 @@ import javafx.stage.Stage
 class PantallaDificultadMRUV(
     private val stage: Stage,
     private val menuScene: Scene
-) {
+) : PantallaJuego {
 
     /**
      * Construye y devuelve la Scene de la pantalla de selección de dificultad.
      *
      * @return la Scene lista para asignarse al Stage principal.
      */
-    fun crearEscena(): Scene {
+    override fun crearEscena(): Scene {
         // Contenedor principal centrado con fondo negro
         val root = VBox(25.0).apply {
             alignment = Pos.CENTER
