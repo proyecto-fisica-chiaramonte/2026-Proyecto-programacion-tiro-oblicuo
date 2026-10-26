@@ -3,21 +3,21 @@
 
 > Documento **generado automáticamente** por la cátedra de Programación II (RepoSense + análisis de calidad POO/SOLID). **No editar a mano**: se regenera en cada evaluación.
 > Rama evaluada: `main`. Análisis **heurístico** (regex + métricas): es una criba para orientar la revisión, **no una nota**.
-> Generado: 2026-10-17.
+> Generado: 2026-10-26.
 
 ## 1. Veredicto
 
 | Aspecto | Resultado |
 |---|---|
 | Índice de calidad POO/SOLID | **4/100** |
-| Código (LOC) | 1,679 |
-| Archivos de código | 18 |
-| Clases (bien usadas) | 15 (3 OK) |
+| Código (LOC) | 1,998 |
+| Archivos de código | 24 |
+| Clases (bien usadas) | 22 (3 OK) |
 | Código dentro de clases (%POO) | 81% |
-| Funciones fuera de clases | 1 |
-| Duplicación | 31.9% |
-| Señales S/O/L/I/D | 7/0/1/0/12 |
-| Tope duro aplicado | `DUP>=30%` → índice ≤ 30 |
+| Funciones fuera de clases | 0 |
+| Duplicación lógica | 22.4% |
+| Señales S/O/L/I/D | 6/0/1/0/14 |
+| Tope duro aplicado | `DUP>=15%` → índice ≤ 50 |
 
 > Este informe **describe** lo que el análisis midió con los criterios ya establecidos de la materia. No es una nota.
 
@@ -28,24 +28,24 @@ Criterios de `CRITERIOS-CALIDAD.md`. **Aprobar** se juega con el perfil `estanda
 | Semáforo | Resultado |
 |---|---|
 | Aprobar (`estandar`) | **no cumple** — 1/4 |
-| Destacar (`exigente`) | **no cumple** — 0/5 |
+| Destacar (`exigente`) | **no cumple** — 1/5 |
 
 **Criterios para aprobar**
 
 | Criterio | Requisito | Tu resultado | Cumple |
 |---|---|---|---|
 | Código dentro de clases (%POO) | ≥ 85% | 81% | no |
-| Duplicación | ≤ 10% | 19.9% | no |
-| Funciones fuera de clases | ≤ 1 | 1 | sí |
-| Señales POO/SOLID críticas | ninguna | Clase demasiado grande (SRP), Baja cohesión (LCOM), Acoplamiento alto (CBO), Override vacío / 'no implementado' (LSP) | no |
+| Duplicación lógica | ≤ 10% | 22.4% | no |
+| Funciones fuera de clases | ≤ 1 | 0 | sí |
+| Señales POO/SOLID críticas | ninguna | Clase demasiado grande (SRP), Acoplamiento alto (CBO), Override vacío / 'no implementado' (LSP) | no |
 
 **Criterios para destacar**
 
 | Criterio | Requisito | Tu resultado | Cumple |
 |---|---|---|---|
 | Código dentro de clases (%POO) | ≥ 95% | 81% | no |
-| Duplicación | ≤ 5% | 31.9% | no |
-| Funciones fuera de clases | ≤ 0 | 1 | no |
+| Duplicación lógica | ≤ 5% | 22.4% | no |
+| Funciones fuera de clases | ≤ 1 | 0 | sí |
 | Señales POO/SOLID críticas | ninguna | Clase demasiado grande (SRP), Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Override vacío / 'no implementado' (LSP) | no |
 | Índice de calidad POO/SOLID | ≥ 60 | 4/100 | no |
 
@@ -53,7 +53,7 @@ Criterios de `CRITERIOS-CALIDAD.md`. **Aprobar** se juega con el perfil `estanda
 
 | Autor | Commits | Código (LOC) | Tests (LOC) | Docs (LOC) | Días activos | % del código |
 |---|---:|---:|---:|---:|---:|---:|
-| bchiaramonte-ux | 24 | 1,826 | 57 | 1 | 10 | 100% |
+| bchiaramonte-ux | 25 | 2,110 | 153 | 1 | 11 | 100% |
 
 > _El LOC de autoría lo calcula RepoSense sobre el historial y puede diferir del LOC de código del análisis de calidad (que mira solo el estado de `main`)._
 
@@ -67,11 +67,11 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 - **Por qué importa:** Ordena y prioriza la revisión: un índice bajo indica varias señales que conviene mirar juntas.
 - **Tu resultado:** índice **4/100**
 
-### 2. Duplicación (DRY) (duplicacion) — con señales
+### 2. Duplicación lógica (DRY) (duplicacion) — con señales
 
-- **Qué mide:** Porcentaje de bloques de código repetidos (similitud) en el repositorio.
-- **Por qué importa:** Cada copia se mantiene por separado: un arreglo hay que repetirlo y los defectos se multiplican.
-- **Tu resultado:** **31.9%** de duplicación
+- **Qué mide:** Porcentaje de bloques de LÓGICA repetidos. Quedan fuera imports/includes, anotaciones, declaraciones de campos y comentarios/Javadoc/docstrings: esos bloques son boilerplate, no lógica.
+- **Por qué importa:** Cada copia de lógica se mantiene por separado: un arreglo hay que repetirlo y los defectos se multiplican.
+- **Tu resultado:** **22.4%** de duplicación lógica
 - **Para investigar la causa:**
     - ¿El trabajo se repartió por pantallas o archivos y se integró copiando y pegando bloques?
     - ¿Qué zonas del sistema cambiaron juntas más de una vez (señal de lógica compartida)?
@@ -83,21 +83,17 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 - **Por qué importa:** El diseño orientado a objetos es el eje de la materia: el comportamiento debería vivir como método de una clase.
 - **Tu resultado:** **81.0%** del código dentro de clases
 
-### 4. Funciones fuera de clases (sueltas) — con señales
+### 4. Funciones fuera de clases (sueltas) — sin señales
 
 - **Qué mide:** Funciones de nivel de módulo que no pertenecen a ninguna clase (en esta materia el comportamiento debe ser método de una clase).
 - **Por qué importa:** Son la forma más directa de código procedural en un proyecto que debería ser orientado a objetos.
-- **Tu resultado:** **1** función(es) fuera de clases
-- **Para investigar la causa:**
-    - ¿Esa función se dejó suelta por urgencia o por desconocer dónde ubicarla?
-    - ¿Qué clase debería ser responsable de ese comportamiento?
-    - ¿Había una convención sobre dónde poner cada cosa?
+- **Tu resultado:** **0** función(es) fuera de clases
 
 ### 5. Clase demasiado grande (SRP) (god) — con señales
 
 - **Qué mide:** Clases con muchas líneas, métodos o campos a la vez.
 - **Por qué importa:** Una clase que hace de todo cambia por muchos motivos y cuesta entenderla y probarla.
-- **Tu resultado:** **4** clase(s) demasiado grande(s)
+- **Tu resultado:** **3** clase(s) demasiado grande(s)
 - **Para investigar la causa:**
     - ¿La clase creció por acumulación de responsabilidades?
     - ¿Qué partes de la clase se usan siempre juntas y cuáles no?
@@ -117,7 +113,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Complejidad ciclomática: cantidad de caminos posibles dentro de un método o función (condicionales, bucles, casos).
 - **Por qué importa:** Muchos caminos = difícil de seguir y de probar; suelen esconderse casos sin cubrir.
-- **Tu resultado:** **4** método(s)/función(es) con complejidad alta
+- **Tu resultado:** **3** método(s)/función(es) con complejidad alta
 - **Para investigar la causa:**
     - ¿Se agregaron condiciones a medida que aparecían casos nuevos?
     - ¿Se probaron todos los caminos o solo el caso principal?
@@ -137,7 +133,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Cuánto depende una clase de otros tipos del proyecto.
 - **Por qué importa:** Piezas muy enlazadas hacen que un cambio se propague y que sea difícil reemplazar partes.
-- **Tu resultado:** **11** clase(s) muy acoplada(s)
+- **Tu resultado:** **14** clase(s) muy acoplada(s)
 - **Para investigar la causa:**
     - ¿La clase conoce detalles internos de muchas otras?
     - ¿Se puede cambiar una parte sin tocar las demás?
@@ -175,7 +171,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Instanciación directa de clases concretas y ausencia de interfaces o clases abstractas pese al acoplamiento.
 - **Por qué importa:** Depender de implementaciones concretas dificulta cambiar o probar una parte sin arrastrar las demás.
-- **Tu resultado:** **12** dependencia(s) de concretos sin abstracciones
+- **Tu resultado:** **14** dependencia(s) de concretos sin abstracciones
 - **Para investigar la causa:**
     - ¿La clase crea por dentro a sus colaboradores en vez de recibirlos?
     - ¿Hay puntos de variación que convendría expresar como abstracción?
@@ -207,19 +203,17 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 Archivos donde el análisis encontró cada señal (sin número de línea, a propósito):
 
-**Clase demasiado grande (SRP) (god)** — 4 archivo(s):
-- `app/src/main/kotlin/com/example/juegofisica/CalculadoraWidget.kt`
+**Clase demasiado grande (SRP) (god)** — 3 archivo(s):
 - `app/src/main/kotlin/com/example/juegofisica/CasillaRespuestaWidget.kt`
 - `app/src/main/kotlin/com/example/juegofisica/PantallaMRUV.kt`
 - `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt`
 
 **Baja cohesión (LCOM) (cohesion)** — 1 archivo(s):
-- `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt`
+- `app/src/main/kotlin/com/example/juegofisica/TemporizadorPartida.kt`
 
-**Complejidad alta (complejidad)** — 3 archivo(s):
-- `app/src/main/kotlin/com/example/juegofisica/CalculadoraWidget.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaMRUV.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt`
+**Complejidad alta (complejidad)** — 2 archivo(s):
+- `app/src/main/kotlin/com/example/juegofisica/MotorCalculadora.kt`
+- `app/src/main/kotlin/com/example/juegofisica/TemporizadorPartida.kt`
 
 **Métodos/funciones largos o con muchos parámetros (tamano)** — 5 archivo(s):
 - `app/src/main/kotlin/com/example/juegofisica/PantallaDificultadMRUV.kt`
@@ -228,9 +222,10 @@ Archivos donde el análisis encontró cada señal (sin número de línea, a prop
 - `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt`
 - `app/src/main/kotlin/com/example/juegofisica/PantallaVictoriaMRUV.kt`
 
-**Acoplamiento alto (CBO) (acoplamiento)** — 11 archivo(s):
+**Acoplamiento alto (CBO) (acoplamiento)** — 14 archivo(s):
 - `app/src/main/kotlin/com/example/juegofisica/CalculadoraWidget.kt`
 - `app/src/main/kotlin/com/example/juegofisica/CasillaRespuestaWidget.kt`
+- `app/src/main/kotlin/com/example/juegofisica/ComponentesUI.kt`
 - `app/src/main/kotlin/com/example/juegofisica/CuadroReglas.kt`
 - `app/src/main/kotlin/com/example/juegofisica/HeaderSection.kt`
 - `app/src/main/kotlin/com/example/juegofisica/InterfazDeInicio.kt`
@@ -240,13 +235,16 @@ Archivos donde el análisis encontró cada señal (sin número de línea, a prop
 - `app/src/main/kotlin/com/example/juegofisica/PantallaMRUV.kt`
 - `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt`
 - `app/src/main/kotlin/com/example/juegofisica/PantallaVictoriaMRUV.kt`
+- `app/src/main/kotlin/com/example/juegofisica/TemporizadorPartida.kt`
+- `app/src/test/kotlin/org/example/AppTest.kt`
 
 **Override vacío o 'no implementado' (LSP) (lsp)** — 1 archivo(s):
 - `app/src/main/kotlin/com/example/juegofisica/PantallaExplicacionMRUV.kt`
 
-**Dependencia de concretos y falta de abstracciones (DIP) (dip)** — 11 archivo(s):
+**Dependencia de concretos y falta de abstracciones (DIP) (dip)** — 14 archivo(s):
 - `app/src/main/kotlin/com/example/juegofisica/CalculadoraWidget.kt`
 - `app/src/main/kotlin/com/example/juegofisica/CasillaRespuestaWidget.kt`
+- `app/src/main/kotlin/com/example/juegofisica/ComponentesUI.kt`
 - `app/src/main/kotlin/com/example/juegofisica/CuadroReglas.kt`
 - `app/src/main/kotlin/com/example/juegofisica/HeaderSection.kt`
 - `app/src/main/kotlin/com/example/juegofisica/InterfazDeInicio.kt`
@@ -256,21 +254,23 @@ Archivos donde el análisis encontró cada señal (sin número de línea, a prop
 - `app/src/main/kotlin/com/example/juegofisica/PantallaMRUV.kt`
 - `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt`
 - `app/src/main/kotlin/com/example/juegofisica/PantallaVictoriaMRUV.kt`
+- `app/src/main/kotlin/com/example/juegofisica/TemporizadorPartida.kt`
+- `app/src/test/kotlin/org/example/AppTest.kt`
 
 **Campos públicos (encapsulación) (encapsulacion)** — 2 archivo(s):
-- `app/src/main/kotlin/com/example/juegofisica/CasillaRespuestaWidget.kt`
+- `app/src/main/kotlin/com/example/juegofisica/PantallaMRUV.kt`
 - `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt`
 
 ## 5. Evolución por commit
 
-Métricas calculadas sobre el estado de `main` en **cada commit** (22 commits con trabajo), del primero al último. La calidad usa el perfil `exigente`; el aporte de código lo mide RepoSense. El índice puede **bajar** al crecer el proyecto: se acumulan señales.
+Métricas calculadas sobre el estado de `main` en **cada commit** (23 commits con trabajo), del primero al último. La calidad usa el perfil `exigente`; el aporte de código lo mide RepoSense. El índice puede **bajar** al crecer el proyecto: se acumulan señales.
 
 ```mermaid
 xychart-beta
     title "Índice POO/SOLID a lo largo de los commits"
-    x-axis ["812737a", "b0e9f11", "4e77849", "fe8f0b8", "733ab8b", "2fc54b0", "deb99ac", "707ed38", "3e681d2", "657d351", "3b5d59e", "7d2dc83", "39d0907", "3a3b787", "cbdf74c", "51ecf43", "403f42c", "8be2ade", "ffa096b", "2086580", "3077384", "ccc7b07"]
+    x-axis ["812737a", "b0e9f11", "4e77849", "fe8f0b8", "733ab8b", "2fc54b0", "deb99ac", "707ed38", "3e681d2", "657d351", "3b5d59e", "7d2dc83", "39d0907", "3a3b787", "cbdf74c", "51ecf43", "403f42c", "8be2ade", "ffa096b", "2086580", "3077384", "ccc7b07", "4231b28"]
     y-axis "Índice" 0 --> 100
-    line [0, 0, 14, 6, 8, 8, 6, 6, 4, 6, 6, 6, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4]
+    line [0, 0, 14, 6, 8, 7, 6, 6, 4, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 4, 5, 4, 4]
 ```
 
 | # | Fecha | Commit | Autor | LOC | Índice | %POO | Duplic. | Sueltas |
@@ -278,25 +278,26 @@ xychart-beta
 | 1 | 2026-08-14 | `812737a` | bchiaramonte-ux | 0 | 0 | 0% | 0.0% | 0 |
 | 2 | 2026-08-24 | `b0e9f11` | dqmdz-etec | 0 | 0 | 0% | 0.0% | 0 |
 | 3 | 2026-08-31 | `4e77849` | bchiaramonte-ux | 171 | 14 | 47% | 0.0% | 1 |
-| 4 | 2026-09-04 | `fe8f0b8` | bchiaramonte-ux | 330 | 6 | 61% | 35.7% | 1 |
-| 5 | 2026-09-04 | `733ab8b` | bchiaramonte-ux | 343 | 8 | 60% | 14.7% | 1 |
-| 6 | 2026-09-07 | `2fc54b0` | bchiaramonte-ux | 460 | 8 | 66% | 12.1% | 1 |
-| 7 | 2026-09-07 | `deb99ac` | bchiaramonte-ux | 566 | 6 | 69% | 15.6% | 1 |
-| 8 | 2026-09-28 | `707ed38` | bchiaramonte-ux | 543 | 6 | 68% | 16.5% | 1 |
-| 9 | 2026-10-02 | `3e681d2` | bchiaramonte-ux | 734 | 4 | 70% | 32.1% | 1 |
-| 10 | 2026-10-02 | `657d351` | bchiaramonte-ux | 650 | 6 | 69% | 31.9% | 1 |
-| 11 | 2026-10-05 | `3b5d59e` | bchiaramonte-ux | 650 | 6 | 69% | 32.8% | 1 |
-| 12 | 2026-10-05 | `7d2dc83` | bchiaramonte-ux | 655 | 6 | 69% | 32.5% | 1 |
-| 13 | 2026-10-05 | `39d0907` | bchiaramonte-ux | 732 | 5 | 72% | 41.9% | 1 |
-| 14 | 2026-10-05 | `3a3b787` | bchiaramonte-ux | 851 | 5 | 75% | 37.7% | 1 |
-| 15 | 2026-10-09 | `cbdf74c` | bchiaramonte-ux | 938 | 5 | 75% | 38.4% | 1 |
-| 16 | 2026-10-09 | `51ecf43` | bchiaramonte-ux | 1,005 | 5 | 76% | 47.0% | 1 |
-| 17 | 2026-10-09 | `403f42c` | bchiaramonte-ux | 1,006 | 5 | 76% | 45.9% | 1 |
-| 18 | 2026-10-09 | `8be2ade` | bchiaramonte-ux | 1,068 | 4 | 77% | 41.6% | 1 |
-| 19 | 2026-10-09 | `ffa096b` | bchiaramonte-ux | 1,317 | 4 | 80% | 36.1% | 1 |
-| 20 | 2026-10-16 | `2086580` | bchiaramonte-ux | 1,326 | 4 | 80% | 37.7% | 1 |
-| 21 | 2026-10-16 | `3077384` | bchiaramonte-ux | 1,583 | 4 | 81% | 30.8% | 1 |
-| 22 | 2026-10-16 | `ccc7b07` | bchiaramonte-ux | 1,679 | 4 | 81% | 31.9% | 1 |
+| 4 | 2026-09-04 | `fe8f0b8` | bchiaramonte-ux | 330 | 6 | 61% | 34.3% | 1 |
+| 5 | 2026-09-04 | `733ab8b` | bchiaramonte-ux | 343 | 8 | 60% | 12.3% | 1 |
+| 6 | 2026-09-07 | `2fc54b0` | bchiaramonte-ux | 460 | 7 | 66% | 16.2% | 1 |
+| 7 | 2026-09-07 | `deb99ac` | bchiaramonte-ux | 566 | 6 | 69% | 20.8% | 1 |
+| 8 | 2026-09-28 | `707ed38` | bchiaramonte-ux | 543 | 6 | 68% | 21.9% | 1 |
+| 9 | 2026-10-02 | `3e681d2` | bchiaramonte-ux | 734 | 4 | 70% | 32.2% | 1 |
+| 10 | 2026-10-02 | `657d351` | bchiaramonte-ux | 650 | 6 | 69% | 32.6% | 1 |
+| 11 | 2026-10-05 | `3b5d59e` | bchiaramonte-ux | 650 | 6 | 69% | 33.9% | 1 |
+| 12 | 2026-10-05 | `7d2dc83` | bchiaramonte-ux | 655 | 6 | 69% | 33.7% | 1 |
+| 13 | 2026-10-05 | `39d0907` | bchiaramonte-ux | 732 | 6 | 72% | 35.6% | 1 |
+| 14 | 2026-10-05 | `3a3b787` | bchiaramonte-ux | 851 | 6 | 75% | 28.8% | 1 |
+| 15 | 2026-10-09 | `cbdf74c` | bchiaramonte-ux | 938 | 5 | 75% | 31.2% | 1 |
+| 16 | 2026-10-09 | `51ecf43` | bchiaramonte-ux | 1,005 | 5 | 76% | 39.9% | 1 |
+| 17 | 2026-10-09 | `403f42c` | bchiaramonte-ux | 1,006 | 5 | 76% | 34.7% | 1 |
+| 18 | 2026-10-09 | `8be2ade` | bchiaramonte-ux | 1,068 | 5 | 77% | 27.6% | 1 |
+| 19 | 2026-10-09 | `ffa096b` | bchiaramonte-ux | 1,317 | 5 | 80% | 21.9% | 1 |
+| 20 | 2026-10-16 | `2086580` | bchiaramonte-ux | 1,326 | 4 | 80% | 23.0% | 1 |
+| 21 | 2026-10-16 | `3077384` | bchiaramonte-ux | 1,583 | 5 | 81% | 22.0% | 1 |
+| 22 | 2026-10-16 | `ccc7b07` | bchiaramonte-ux | 1,679 | 4 | 81% | 24.3% | 1 |
+| 23 | 2026-10-19 | `4231b28` | bchiaramonte-ux | 1,998 | 4 | 81% | 22.4% | 0 |
 
 ---
 _Informe generado por la cátedra. Los criterios y umbrales de medición corresponden al perfil `exigente` de `calidad.py`; el semáforo de aprobación, a `CRITERIOS-CALIDAD.md` (ver `README.md`). Ante dudas, revisá el archivo señalado._
