@@ -282,7 +282,8 @@ class PantallaModoDificil(
      */
     fun mostrarVictoria() {
         timeline?.stop()
-        val pantallaVictoria = PantallaVictoriaMRUV(stage, menuScene)
+        val tiempoEmpleado = (tiempoInicialSegundos - tiempoRestanteSegundos).coerceAtLeast(0)
+        val pantallaVictoria = PantallaVictoriaMRUV(stage, menuScene, tiempoEmpleado)
         stage.scene = pantallaVictoria.crearEscena()
         stage.title = "MRUV - ¡Victoria!"
     }

@@ -109,6 +109,9 @@ class PantallaMRUV(
         val casillaTiempo = CasillaTiempoWidget(
             onVerificar = { entrada ->
                 val esCorrecto = validador.validar(entrada, tiempoEsperado)
+                if (esCorrecto) {
+                    mostrarVictoria()
+                }
                 esCorrecto
             }
         )
@@ -320,6 +323,17 @@ class PantallaMRUV(
         aceleracion = a.toDouble()
         distancia = (a * tiempoExacto * tiempoExacto / 2).toDouble()
         tiempoEsperado = validador.calcularTiempo(distancia, aceleracion)
+    }
+
+    /**
+     * Detiene el cronómetro, calcula el tiempo transcurrido y realiza la transición a la pantalla de victoria.
+     */
+    fun mostrarVictoria() {
+        timeline?.stop()
+        val tiempoEmpleado = (tiempoSeleccionadoSegundos - tiempoRestanteSegundos).coerceAtLeast(0)
+        val pantallaVictoria = PantallaVictoriaMRUV(stage, menuScene, tiempoEmpleado)
+        stage.scene = pantallaVictoria.crearEscena()
+        stage.title = "MRUV - ¡Victoria!"
     }
 
     /**
