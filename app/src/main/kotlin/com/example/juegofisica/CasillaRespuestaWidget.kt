@@ -178,9 +178,19 @@ class CasillaRespuestaWidget(
     }
 
     /**
+     * Deshabilita la entrada de texto y el botón de verificación al terminar la partida.
+     */
+    fun deshabilitar() {
+        txtRespuesta.isDisable = true
+        btnVerificar.isDisable = true
+    }
+
+    /**
      * Restablece la casilla de respuesta a su apariencia inicial limpia.
      */
     fun reiniciar() {
+        txtRespuesta.isDisable = false
+        btnVerificar.isDisable = false
         txtRespuesta.text = ""
         lblMensaje.text = ""
         contenedor.style = "-fx-background-color: rgba(0, 0, 0, 0.85); " +
