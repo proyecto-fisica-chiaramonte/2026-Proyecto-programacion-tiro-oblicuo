@@ -29,7 +29,8 @@ import javafx.stage.Stage
 class PantallaVictoriaMRUV(
     private val stage: Stage,
     private val menuScene: Scene,
-    val tiempoEmpleadoSegundos: Int = 0
+    val tiempoEmpleadoSegundos: Int = 0,
+    private val esModoDificil: Boolean = true
 ) : PantallaJuego {
 
     /**
@@ -41,7 +42,7 @@ class PantallaVictoriaMRUV(
     override fun crearEscena(): Scene {
         val root = StackPane()
 
-        val animacionFondo = AnimacionEscenario()
+        val animacionFondo = AnimacionEscenario(esModoDificil)
         animacionFondo.vincularTamano(root)
         animacionFondo.ejecutarAnimacionDesvio {}
 

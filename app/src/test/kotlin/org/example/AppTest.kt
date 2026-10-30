@@ -5,6 +5,7 @@ import com.example.juegofisica.IValidadorRespuesta
 import com.example.juegofisica.MotorCalculadora
 import com.example.juegofisica.TemporizadorPartida
 import com.example.juegofisica.ValidadorRespuestaMRUV
+import com.example.juegofisica.ValidadorTiempoMRUV
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -149,5 +150,20 @@ class AppTest {
         assertEquals(0, temporizador.tiempoRestanteSegundos)
         assertEquals(2, temporizador.tiempoEmpleadoSegundos)
         assertTrue(finLlamado)
+    }
+
+    @Test
+    fun testCalculoYValidacionTiempoModoFacil() {
+        val validadorTiempo = ValidadorTiempoMRUV()
+
+        // d = 16, a = 2 => t = sqrt(2 * 16 / 2) = 4.0
+        assertEquals(4.0, validadorTiempo.calcularTiempo(16.0, 2.0), 0.0001)
+        assertEquals(0.0, validadorTiempo.calcularTiempo(-10.0, 2.0))
+        assertEquals(0.0, validadorTiempo.calcularTiempo(16.0, 0.0))
+
+        assertTrue(validadorTiempo.validar("4", 4.0))
+        assertTrue(validadorTiempo.validar("4,05", 4.0))
+        assertFalse(validadorTiempo.validar("5", 4.0))
+        assertFalse(validadorTiempo.validar("abc", 4.0))
     }
 }
