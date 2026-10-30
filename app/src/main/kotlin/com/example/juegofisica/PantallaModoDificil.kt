@@ -43,11 +43,11 @@ class PantallaModoDificil(
     /** Gestor del ciclo de animación continua del escenario, jugador y tren (SRP). */
     private val animacionEscenario: AnimacionEscenario = AnimacionEscenario()
 
-    /** Duración fija de la partida en el modo difícil (2 minutos). */
-    val tiempoInicialSegundos: Int = 120
+    /** Duración fija de la partida en el modo difícil (1 minuto = 60 segundos). */
+    val tiempoInicialSegundos: Int = 60
 
     /** Segundos restantes de la partida en curso. */
-    var tiempoRestanteSegundos: Int = 120
+    var tiempoRestanteSegundos: Int = 60
         private set
 
     /** Aceleración del problema (m/s²). */
@@ -191,7 +191,7 @@ class PantallaModoDificil(
         )
         temporizador = gestorTemporizador
 
-        // Iniciar la partida automáticamente con 2 minutos fijos
+        // Iniciar la partida automáticamente con 1 minuto fijo (01:00)
         lblContador.text = gestorTemporizador.formatearTiempo(tiempoInicialSegundos)
         gestorTemporizador.iniciar(tiempoInicialSegundos)
 
@@ -243,11 +243,11 @@ class PantallaModoDificil(
     }
 
     /**
-     * Detiene el cronómetro y la animación activa, calcula el tiempo empleado
-     * y muestra la pantalla final de victoria.
+     * Detiene el cronómetro y la animación activa, calcula el tiempo empleado sobre la base
+     * de 60 segundos (60s - tiempoRestante) y muestra la pantalla final de victoria.
      */
     fun mostrarVictoria() {
-        val tiempoEmpleado = temporizador?.tiempoEmpleadoSegundos ?: (tiempoInicialSegundos - tiempoRestanteSegundos)
+        val tiempoEmpleado = (tiempoInicialSegundos - tiempoRestanteSegundos).coerceIn(0, tiempoInicialSegundos)
         temporizador?.detener()
         animacionEscenario.detener()
         val pantallaVictoria = PantallaVictoriaMRUV(stage, menuScene, tiempoEmpleado)
