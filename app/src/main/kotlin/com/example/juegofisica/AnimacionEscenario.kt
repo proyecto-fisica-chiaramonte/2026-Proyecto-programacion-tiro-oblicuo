@@ -30,7 +30,9 @@ import kotlin.random.Random
  * 3. **Derrota (Impacto/Atropello)**: El tren acelera a máxima velocidad y alcanza la posición
  *    del jugador sobre la vía principal.
  */
-class AnimacionEscenario {
+class AnimacionEscenario(
+    private val esModoDificil: Boolean = true
+) {
 
     /** Lienzo responsivo donde se dibuja el escenario cuadro a cuadro. */
     val canvas: Canvas = Canvas(400.0, 300.0)
@@ -286,22 +288,31 @@ class AnimacionEscenario {
         gc.save()
         gc.translate(shakeX, shakeY)
 
-        // 1. Cielo tormentoso rojizo/oscuro del modo difícil
-        val cielo = LinearGradient(
-            0.0, 0.0, 0.0, h * 0.65, false, CycleMethod.NO_CYCLE,
-            Stop(0.0, Color.web("#140303")),
-            Stop(0.55, Color.web("#4a0c0a")),
-            Stop(1.0, Color.web("#851f0e"))
-        )
+        // 1. Cielo según la dificultad (tormentoso rojizo en difícil, diurno celeste en fácil)
+        val cielo = if (esModoDificil) {
+            LinearGradient(
+                0.0, 0.0, 0.0, h * 0.65, false, CycleMethod.NO_CYCLE,
+                Stop(0.0, Color.web("#140303")),
+                Stop(0.55, Color.web("#4a0c0a")),
+                Stop(1.0, Color.web("#851f0e"))
+            )
+        } else {
+            LinearGradient(
+                0.0, 0.0, 0.0, h * 0.65, false, CycleMethod.NO_CYCLE,
+                Stop(0.0, Color.web("#1E88E5")),
+                Stop(0.6, Color.web("#64B5F6")),
+                Stop(1.0, Color.web("#B3E5FC"))
+            )
+        }
         gc.fill = cielo
         gc.fillRect(0.0, 0.0, w, h)
 
-        // 2. Capa Parallax Lenta: Montañas y ruinas lejanas
+        // 2. Capa Parallax Lenta: Montañas / colinas lejanas
         dibujarMontanasParallax(gc, w, h)
 
-        // 3. Suelo árido oscuro
+        // 3. Suelo (árido oscuro en difícil, pradera verde en fácil)
         val yHorizonte = h * 0.54
-        gc.fill = Color.web("#220d0b")
+        gc.fill = if (esModoDificil) Color.web("#220d0b") else Color.web("#388E3C")
         gc.fillRect(0.0, yHorizonte, w, h - yHorizonte)
 
         // 4. Capa Parallax Media: Árboles secos y postes ferroviarios
@@ -362,7 +373,7 @@ class AnimacionEscenario {
      * Dibuja dos ciclos de siluetas de montañas desplazándose lentamente hacia la izquierda.
      */
     private fun dibujarMontanasParallax(gc: GraphicsContext, w: Double, h: Double) {
-        gc.fill = Color.web("#180505")
+        gc.fill = if (esModoDificil) Color.web("#180505") else Color.web("#2E7D32")
         val anchoCiclo = w + 200.0
         for (ciclo in 0..1) {
             val base = -offsetMontanas + ciclo * anchoCiclo
@@ -391,24 +402,29 @@ class AnimacionEscenario {
     }
 
     /**
-     * Dibuja árboles secos y postes de catenaria desplazándose a velocidad media para dar profundidad.
+     * Dibuja árboles y postes de catenaria desplazándose a velocidad media para dar profundidad.
      */
     private fun dibujarArbolesYPostesParallax(gc: GraphicsContext, w: Double, yHorizonte: Double) {
         var xElem = -offsetArboles
         var indice = 0
         while (xElem < w + 180.0) {
             // Poste ferroviario
-            gc.fill = Color.web("#2d1410")
+            gc.fill = if (esModoDificil) Color.web("#2d1410") else Color.web("#4E342E")
             gc.fillRect(xElem, yHorizonte - 42.0, 4.0, 50.0)
             gc.fillRect(xElem - 8.0, yHorizonte - 40.0, 20.0, 3.0)
 
-            // Árbol seco retorcido intercalado
+            // Árbol intercalado (seco en difícil, frondoso en fácil)
             val xArbol = xElem + 85.0
-            gc.stroke = Color.web("#1a0806")
+            gc.stroke = if (esModoDificil) Color.web("#1a0806") else Color.web("#4E342E")
             gc.lineWidth = 3.0
             gc.strokeLine(xArbol, yHorizonte + 5.0, xArbol, yHorizonte - 28.0)
-            gc.strokeLine(xArbol, yHorizonte - 18.0, xArbol - 10.0, yHorizonte - 30.0)
-            gc.strokeLine(xArbol, yHorizonte - 14.0, xArbol + 11.0, yHorizonte - 26.0)
+            if (esModoDificil) {
+                gc.strokeLine(xArbol, yHorizonte - 18.0, xArbol - 10.0, yHorizonte - 30.0)
+                gc.strokeLine(xArbol, yHorizonte - 14.0, xArbol + 11.0, yHorizonte - 26.0)
+            } else {
+                gc.fill = Color.web("#1B5E20")
+                gc.fillOval(xArbol - 14.0, yHorizonte - 44.0, 28.0, 24.0)
+            }
 
             xElem += 180.0
             indice++

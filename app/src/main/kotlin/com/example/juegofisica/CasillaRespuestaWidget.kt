@@ -23,11 +23,12 @@ import javafx.scene.text.FontWeight
  * @param onVerificar función delegada que valida el texto ingresado y devuelve true si es correcto.
  */
 class CasillaRespuestaWidget(
-    private val onVerificar: (String) -> Boolean
+    private val onVerificar: (String) -> Boolean,
+    etiquetaTexto: String = "X ="
 ) {
 
     /** Etiqueta pequeña indicadora de la variable a calcular. */
-    private val lblEtiqueta: Label = Label("X =").apply {
+    private val lblEtiqueta: Label = Label(etiquetaTexto).apply {
         font = Font.font("System", FontWeight.BOLD, 12.0)
         textFill = Color.web("#FFD700")
     }
