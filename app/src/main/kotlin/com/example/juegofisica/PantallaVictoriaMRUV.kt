@@ -13,12 +13,12 @@ import javafx.scene.text.Text
 import javafx.stage.Stage
 
 /**
- * Pantalla de victoria correspondiente al modo difícil del nivel MRUV.
+ * Pantalla de victoria correspondiente al nivel MRUV.
  *
- * Se muestra cuando el jugador ingresa el resultado correcto de la posición final x(t)
- * antes de que se agote el tiempo. Utiliza la imagen de fondo `fondo_mruv_d_f.jpg`,
- * muestra un mensaje festivo "¡Ganaste!", el tiempo exacto empleado en resolver el ejercicio
- * y un botón "Reiniciar" para volver al menú principal.
+ * Se muestra tras concluir la secuencia animada de desvío del tren cuando el jugador
+ * ingresa el resultado correcto antes de que se agote el tiempo. Presenta el escenario
+ * animado de fondo, el mensaje "¡Ganaste!", el tiempo exacto transcurrido y el botón
+ * "Reiniciar" para regresar al menú principal.
  *
  * Implementa la interfaz [PantallaJuego] (LSP).
  *
@@ -32,20 +32,18 @@ class PantallaVictoriaMRUV(
     val tiempoEmpleadoSegundos: Int = 0
 ) : PantallaJuego {
 
-    /** Proveedor reutilizable de componentes visuales (DRY). */
-    private val componentesUI: ComponentesUI = ComponentesUI()
-
     /**
-     * Construye y devuelve la Scene de victoria con la imagen de fondo fondo_mruv_d_f.jpg,
-     * el mensaje festivo "¡Ganaste!", el tiempo empleado y el botón para reiniciar al menú principal.
+     * Construye y devuelve la Scene de victoria con el escenario animado de desvío,
+     * el mensaje "¡Ganaste!", el tiempo empleado y el botón "Reiniciar".
      *
      * @return la Scene de victoria lista para asignarse al Stage principal.
      */
     override fun crearEscena(): Scene {
         val root = StackPane()
 
-        // Cargar imagen de fondo festiva del modo difícil usando ComponentesUI (DRY)
-        val imageView = componentesUI.crearFondoResponsive("/images/fondo_mruv_d_f.jpg", root)
+        val animacionFondo = AnimacionEscenario()
+        animacionFondo.vincularTamano(root)
+        animacionFondo.ejecutarAnimacionDesvio {}
 
         // Panel centrado festivo con bordes verdes y fondo oscuro translúcido
         val panelVictoria = VBox(15.0).apply {
@@ -67,8 +65,9 @@ class PantallaVictoriaMRUV(
         }
 
         // Etiqueta que muestra el tiempo empleado en la partida formateado
-        val minutos = tiempoEmpleadoSegundos / 60
-        val segs = tiempoEmpleadoSegundos % 60
+        val totalSegundos = tiempoEmpleadoSegundos.coerceAtLeast(0)
+        val minutos = totalSegundos / 60
+        val segs = totalSegundos % 60
         val tiempoTexto = String.format("%02d:%02d", minutos, segs)
 
         val lblTiempo = Text("Tiempo: $tiempoTexto").apply {
@@ -93,13 +92,14 @@ class PantallaVictoriaMRUV(
                         "-fx-background-radius: 5; -fx-padding: 8 26;"
             }
             setOnAction {
+                animacionFondo.detener()
                 stage.scene = menuScene
                 stage.title = "Juego Educativo de Física"
             }
         }
 
         panelVictoria.children.addAll(lblGanaste, lblTiempo, btnReiniciar)
-        root.children.addAll(imageView, panelVictoria)
+        root.children.addAll(animacionFondo.canvas, panelVictoria)
         StackPane.setAlignment(panelVictoria, Pos.CENTER)
 
         return Scene(root, 400.0, 300.0)

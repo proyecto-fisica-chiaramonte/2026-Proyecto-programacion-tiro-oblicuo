@@ -19,7 +19,8 @@ import javafx.scene.text.Text
  * @param onReiniciar acción a ejecutar al presionar el botón "Reiniciar".
  */
 class PantallaDerrotaMRUV(
-    private val onReiniciar: () -> Unit
+    private val onReiniciar: () -> Unit,
+    mensaje: String = "¡Perdiste!"
 ) {
 
     /** VBox raíz del overlay de derrota. */
@@ -38,8 +39,8 @@ class PantallaDerrotaMRUV(
     }
 
     /** Mensaje destacado de derrota. */
-    private val lblFallaste: Text = Text("FALLASTE").apply {
-        font = Font.font("System", FontWeight.BOLD, 42.0)
+    private val lblFallaste: Text = Text(mensaje).apply {
+        font = Font.font("System", FontWeight.BOLD, 38.0)
         fill = Color.web("#FF4444")
     }
 

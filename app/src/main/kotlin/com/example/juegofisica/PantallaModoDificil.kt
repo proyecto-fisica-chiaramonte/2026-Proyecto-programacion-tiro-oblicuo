@@ -15,20 +15,19 @@ import javafx.stage.Stage
 /**
  * Pantalla correspondiente al modo difícil del nivel MRUV.
  *
- * Utiliza una imagen JPG como fondo que se adapta al tamaño de la ventana,
- * superpone un botón para volver al menú y una calculadora compacta en la
- * esquina superior izquierda, un botón "REGLAS" y una columna de datos físicos
- * (a, d, v, v₀, x₀) en la esquina superior derecha, inicia automáticamente la cuenta
- * regresiva desde 2 minutos, muestra el texto del temporizador en la esquina
- * inferior izquierda y un cuadro emergente centrado con las fórmulas del MRUV.
+ * Presenta una animación continua en tiempo real ([AnimacionEscenario]) como fondo dinámico,
+ * donde las vías se desplazan con efecto parallax, el jugador corre sobre los rieles y el tren
+ * lo persigue acortando distancia a medida que avanza el temporizador.
  *
- * El tiempo t no se muestra: el jugador debe calcularlo con t = d / v
- * y luego usarlo en x(t) = x₀ + v₀ · t + ½ · a · t².
+ * Superpone un botón para volver al menú, una calculadora compacta y la casilla de respuesta
+ * en la esquina superior izquierda, un botón "REGLAS" y la columna de datos físicos
+ * (a, d, v, v₀, x₀) en la esquina superior derecha, y el temporizador en la esquina inferior izquierda.
  *
  * Implementa la interfaz [PantallaJuego] (LSP).
- * Recibe una abstracción [IValidadorRespuesta] (DIP).
+ * Depende de la abstracción [IValidadorRespuesta] (DIP) y delega el renderizado gráfico
+ * en [AnimacionEscenario] (SRP).
  *
- * @property stage el Stage principal de la aplicación, usado para volver al menú.
+ * @property stage el Stage principal de la aplicación, usado para cambiar de escena.
  * @property menuScene la Scene del menú principal a la que se regresa.
  * @property validador validador de cálculo físico desacoplado mediante interfaz.
  */
@@ -40,6 +39,9 @@ class PantallaModoDificil(
 
     /** Proveedor reutilizable de componentes visuales (DRY). */
     private val componentesUI: ComponentesUI = ComponentesUI()
+
+    /** Gestor del ciclo de animación continua del escenario, jugador y tren (SRP). */
+    private val animacionEscenario: AnimacionEscenario = AnimacionEscenario()
 
     /** Duración fija de la partida en el modo difícil (2 minutos). */
     val tiempoInicialSegundos: Int = 120
@@ -76,40 +78,62 @@ class PantallaModoDificil(
     private var temporizador: TemporizadorPartida? = null
 
     /**
-     * Construye y devuelve la Scene de la pantalla de modo difícil con la imagen de
-     * fondo, los botones de navegación, el temporizador iniciado automáticamente y el
-     * cuadro de reglas integrado.
+     * Construye y devuelve la Scene del modo difícil con el escenario animado en bucle continuo,
+     * los controles de cálculo, el temporizador y las transiciones animadas de victoria y derrota.
      *
      * @return la Scene lista para asignarse al Stage principal.
      */
     override fun crearEscena(): Scene {
-        // Contenedor raíz que ocupa toda la ventana y apila los elementos
         val root = StackPane()
 
-        // Imagen de fondo responsive
-        val imageView = componentesUI.crearFondoResponsive("/images/fondo_mruv_d.jpg", root)
+        // Escenario animado continuo (parallax de vías + jugador corriendo + tren persiguiendo)
+        animacionEscenario.vincularTamano(root)
+        animacionEscenario.iniciarPersecucion()
 
         // Botón para volver al menú principal (esquina superior izquierda)
         val btnVolver = componentesUI.crearBotonVolver {
             temporizador?.detener()
+            animacionEscenario.detener()
             stage.scene = menuScene
         }
 
         // Calculadora compacta debajo del botón Volver al Menú
         val calculadora = CalculadoraWidget()
 
-        // Casilla interactiva compacta para responder x(t) ubicada justo debajo de la calculadora
-        val casillaRespuesta = CasillaRespuestaWidget(
+        // Overlay de derrota ("¡Perdiste!") que se muestra al concluir la animación de impacto
+        val pantallaDerrota = PantallaDerrotaMRUV(
+            onReiniciar = {
+                temporizador?.detener()
+                animacionEscenario.detener()
+                stage.scene = menuScene
+                stage.title = "Juego Educativo de Física"
+            },
+            mensaje = "¡Perdiste!"
+        )
+
+        // Casilla interactiva compacta para responder x(t) ubicada debajo de la calculadora
+        lateinit var casillaRespuesta: CasillaRespuestaWidget
+        casillaRespuesta = CasillaRespuestaWidget(
             onVerificar = { entrada ->
                 val esCorrecto = validador.validar(entrada, resultadoEsperado)
                 if (esCorrecto) {
-                    mostrarVictoria()
+                    temporizador?.detener()
+                    casillaRespuesta.deshabilitar()
+                    animacionEscenario.ejecutarAnimacionDesvio {
+                        mostrarVictoria()
+                    }
+                } else if (tiempoRestanteSegundos <= 1) {
+                    temporizador?.detener()
+                    casillaRespuesta.deshabilitar()
+                    animacionEscenario.ejecutarAnimacionImpacto {
+                        pantallaDerrota.mostrar()
+                    }
                 }
                 esCorrecto
             }
         )
 
-        // Columna izquierda: volver + calculadora + casilla de respuesta justo debajo
+        // Columna izquierda: volver + calculadora + casilla de respuesta
         val zonaIzquierda = VBox(6.0).apply {
             alignment = Pos.TOP_LEFT
             maxWidth = Region.USE_PREF_SIZE
@@ -125,7 +149,7 @@ class PantallaModoDificil(
         // Datos físicos aleatorios (sin t: el jugador debe calcularlo)
         generarDatosPartida()
 
-        // Columna compacta de variables debajo del botón REGLAS (una línea por dato)
+        // Columna compacta de variables debajo del botón REGLAS
         val panelDatos = componentesUI.crearPanelDatos(
             componentesUI.crearEtiquetaDato("a = ${aceleracion.toInt()} m/s²"),
             componentesUI.crearEtiquetaDato("d = ${distancia.toInt()} m"),
@@ -134,39 +158,35 @@ class PantallaModoDificil(
             componentesUI.crearEtiquetaDato("x₀ = ${posicionInicial.toInt()} m")
         )
 
-        // Columna superior derecha: REGLAS + panel de datos debajo, alineados a la derecha
+        // Columna superior derecha: REGLAS + panel de datos debajo
         val zonaDerecha = VBox(10.0).apply {
             alignment = Pos.TOP_RIGHT
             maxWidth = Region.USE_PREF_SIZE
             children.addAll(btnReglas, panelDatos)
         }
 
-        // Overlay de derrota: vuelve al menú principal al reiniciar
-        val pantallaDerrota = PantallaDerrotaMRUV(
-            onReiniciar = {
-                temporizador?.detener()
-                stage.scene = menuScene
-                stage.title = "Juego Educativo de Física"
-            }
-        )
-
-        // Temporizador de texto limpio en la esquina inferior izquierda (sin fondo ni contenedor visible)
+        // Temporizador de texto limpio en la esquina inferior izquierda
         val lblContador = Label("").apply {
             font = Font.font("System", FontWeight.BOLD, 22.0)
             textFill = Color.web("#FFD700")
         }
 
-        // Inicializar gestor del temporizador
+        // Inicializar gestor del temporizador sincronizado con el acercamiento del tren
         val gestorTemporizador = TemporizadorPartida(
             onTick = { segundos, tiempoFormateado ->
                 tiempoRestanteSegundos = segundos
                 lblContador.text = tiempoFormateado
+                val progreso = (tiempoInicialSegundos - segundos).toDouble() / tiempoInicialSegundos.toDouble()
+                animacionEscenario.actualizarProgreso(progreso)
             },
             onFin = {
                 tiempoRestanteSegundos = 0
                 lblContador.text = "00:00"
                 lblContador.textFill = Color.web("#FF4444")
-                pantallaDerrota.mostrar()
+                casillaRespuesta.deshabilitar()
+                animacionEscenario.ejecutarAnimacionImpacto {
+                    pantallaDerrota.mostrar()
+                }
             }
         )
         temporizador = gestorTemporizador
@@ -175,9 +195,9 @@ class PantallaModoDificil(
         lblContador.text = gestorTemporizador.formatearTiempo(tiempoInicialSegundos)
         gestorTemporizador.iniciar(tiempoInicialSegundos)
 
-        // Apilar: fondo, zona izquierda (volver + calculadora + respuesta), datos, temporizador, reglas y derrota
+        // Apilar: lienzo animado, controles izquierdos, datos derechos, temporizador, reglas y derrota
         root.children.addAll(
-            imageView,
+            animacionEscenario.canvas,
             zonaIzquierda,
             zonaDerecha,
             lblContador,
@@ -185,19 +205,15 @@ class PantallaModoDificil(
             pantallaDerrota.contenedor
         )
 
-        // Posicionar volver + calculadora + respuesta en la esquina superior izquierda
         StackPane.setAlignment(zonaIzquierda, Pos.TOP_LEFT)
         StackPane.setMargin(zonaIzquierda, Insets(15.0))
 
-        // Posicionar REGLAS + panel de datos en la esquina superior derecha
         StackPane.setAlignment(zonaDerecha, Pos.TOP_RIGHT)
         StackPane.setMargin(zonaDerecha, Insets(15.0))
 
-        // Posicionar el temporizador en la esquina inferior izquierda
         StackPane.setAlignment(lblContador, Pos.BOTTOM_LEFT)
         StackPane.setMargin(lblContador, Insets(15.0))
 
-        // El cuadro de reglas y derrota se centran sobre la imagen
         StackPane.setAlignment(cuadroReglas.contenedor, Pos.CENTER)
         StackPane.setAlignment(pantallaDerrota.contenedor, Pos.CENTER)
 
@@ -227,11 +243,13 @@ class PantallaModoDificil(
     }
 
     /**
-     * Detiene el cronómetro, calcula el tiempo empleado y realiza la transición a la pantalla de victoria.
+     * Detiene el cronómetro y la animación activa, calcula el tiempo empleado
+     * y muestra la pantalla final de victoria.
      */
     fun mostrarVictoria() {
         val tiempoEmpleado = temporizador?.tiempoEmpleadoSegundos ?: (tiempoInicialSegundos - tiempoRestanteSegundos)
         temporizador?.detener()
+        animacionEscenario.detener()
         val pantallaVictoria = PantallaVictoriaMRUV(stage, menuScene, tiempoEmpleado)
         stage.scene = pantallaVictoria.crearEscena()
         stage.title = "MRUV - ¡Victoria!"
