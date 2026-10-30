@@ -15,12 +15,12 @@ class TemporizadorPartida(
     private val onFin: (() -> Unit)? = null
 ) {
 
-    /** Tiempo inicial configurado para la cuenta regresiva en segundos. */
-    var tiempoInicialSegundos: Int = 0
+    /** Tiempo inicial configurado para la cuenta regresiva en segundos (por defecto 60s = 1 minuto). */
+    var tiempoInicialSegundos: Int = 60
         private set
 
     /** Segundos restantes en la cuenta regresiva actual. */
-    var tiempoRestanteSegundos: Int = 0
+    var tiempoRestanteSegundos: Int = 60
         private set
 
     /** Segundos transcurridos desde el inicio de la cuenta regresiva. */
@@ -46,9 +46,9 @@ class TemporizadorPartida(
      * Inicia la cuenta regresiva con la cantidad de segundos especificada.
      * Si ya había un temporizador corriendo, se detiene antes de comenzar.
      *
-     * @param segundos duración total del temporizador en segundos.
+     * @param segundos duración total del temporizador en segundos (por defecto 60 segundos).
      */
-    fun iniciar(segundos: Int) {
+    fun iniciar(segundos: Int = 60) {
         configurarTiempo(segundos)
 
         timeline = Timeline(

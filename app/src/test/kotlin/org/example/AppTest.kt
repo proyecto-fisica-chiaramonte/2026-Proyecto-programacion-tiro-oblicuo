@@ -130,7 +130,9 @@ class AppTest {
             onFin = { finLlamado = true }
         )
 
-        assertEquals("02:00", temporizador.formatearTiempo(120))
+        assertEquals("01:00", temporizador.formatearTiempo(60))
+        assertEquals(60, temporizador.tiempoInicialSegundos)
+        assertEquals(60, temporizador.tiempoRestanteSegundos)
         assertEquals("00:05", temporizador.formatearTiempo(5))
         assertEquals("00:00", temporizador.formatearTiempo(0))
 
