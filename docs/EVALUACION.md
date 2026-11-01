@@ -3,7 +3,7 @@
 
 > Documento **generado automáticamente** por la cátedra de Programación II (RepoSense + análisis de calidad POO/SOLID). **No editar a mano**: se regenera en cada evaluación.
 > Rama evaluada: `main`. Análisis **heurístico** (regex + métricas): es una criba para orientar la revisión, **no una nota**.
-> Generado: 2026-10-30.
+> Generado: 2026-11-01.
 
 ## 1. Veredicto
 
@@ -13,7 +13,7 @@
 | Código (LOC) | 2,690 |
 | Archivos de código | 26 |
 | Clases (bien usadas) | 24 (6 OK) |
-| Código dentro de clases (%POO) | 84% |
+| Código dentro de clases (%POO) | 98% |
 | Funciones fuera de clases | 0 |
 | Duplicación lógica | 19.0% |
 | Señales S/O/L/I/D | 3/0/1/0/13 |
@@ -27,14 +27,14 @@ Criterios de `CRITERIOS-CALIDAD.md`. **Aprobar** se juega con el perfil `estanda
 
 | Semáforo | Resultado |
 |---|---|
-| Aprobar (`estandar`) | **no cumple** — 1/4 |
-| Destacar (`exigente`) | **no cumple** — 1/5 |
+| Aprobar (`estandar`) | **no cumple** — 2/4 |
+| Destacar (`exigente`) | **no cumple** — 2/5 |
 
 **Criterios para aprobar**
 
 | Criterio | Requisito | Tu resultado | Cumple |
 |---|---|---|---|
-| Código dentro de clases (%POO) | ≥ 85% | 84% | no |
+| Código dentro de clases (%POO) | ≥ 85% | 98% | sí |
 | Duplicación lógica | ≤ 10% | 19.0% | no |
 | Funciones fuera de clases | ≤ 1 | 0 | sí |
 | Señales POO/SOLID críticas | ninguna | Clase demasiado grande (SRP), Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Override vacío / 'no implementado' (LSP) | no |
@@ -43,11 +43,19 @@ Criterios de `CRITERIOS-CALIDAD.md`. **Aprobar** se juega con el perfil `estanda
 
 | Criterio | Requisito | Tu resultado | Cumple |
 |---|---|---|---|
-| Código dentro de clases (%POO) | ≥ 95% | 84% | no |
+| Código dentro de clases (%POO) | ≥ 95% | 98% | sí |
 | Duplicación lógica | ≤ 5% | 19.0% | no |
 | Funciones fuera de clases | ≤ 1 | 0 | sí |
 | Señales POO/SOLID críticas | ninguna | Clase demasiado grande (SRP), Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Override vacío / 'no implementado' (LSP) | no |
 | Índice de calidad POO/SOLID | ≥ 60 | 5/100 | no |
+
+### Cómo se calcula el %POO (y por qué no sube solo)
+
+`%POO = líneas de lógica dentro de clases ÷ líneas de lógica totales`.
+
+Se cuentan las líneas de **lógica y campos**; no cuentan `package`/`import`/`using`/anotaciones ni comentarios, Javadoc o docstrings. Es una **proporción**: si agregás código nuevo dentro de una clase, el numerador y el denominador crecen juntos y el porcentaje casi no cambia.
+
+Sube cuando el código que hoy está **fuera** de clases pasa a ser método de una clase (o desaparece): funciones sueltas, `main`, constantes de módulo, scripts y lógica de archivos sueltos. También importa que ese trabajo esté **integrado en `main`**: la evaluación siempre mide `main`, así que lo que sigue en otra rama no se refleja todavía.
 
 ## 2. Autoría (RepoSense)
 
@@ -57,7 +65,20 @@ Criterios de `CRITERIOS-CALIDAD.md`. **Aprobar** se juega con el perfil `estanda
 
 > _El LOC de autoría lo calcula RepoSense sobre el historial y puede diferir del LOC de código del análisis de calidad (que mira solo el estado de `main`)._
 
-## 3. Aspectos evaluados
+## 3. Fallas detectadas
+
+Reúne lo que el análisis marcó y lo que todavía falta para cada semáforo. Cuando la señal se puede asociar a archivos, se indican para orientar la revisión. No es una nota.
+
+| Falla | Tu resultado | Requisito | Archivos |
+|---|---|---|---|
+| Duplicación lógica | 19.0% | Aprobar: ≤ 10%<br>Destacar: ≤ 5% | `app/src/main/kotlin/com/example/juegofisica/CasillaRespuestaWidget.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaDerrotaMRUV.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaDificultadMRUV.kt` |
+| Señales POO/SOLID críticas | Clase demasiado grande (SRP), Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO), Override vacío / 'no implementado' (LSP) | Aprobar: ninguna<br>Destacar: ninguna | `app/src/main/kotlin/com/example/juegofisica/AnimacionEscenario.kt`, `app/src/main/kotlin/com/example/juegofisica/CalculadoraWidget.kt`, `app/src/main/kotlin/com/example/juegofisica/CasillaRespuestaWidget.kt`, `app/src/main/kotlin/com/example/juegofisica/ComponentesUI.kt`, `app/src/main/kotlin/com/example/juegofisica/CuadroReglas.kt`, `app/src/main/kotlin/com/example/juegofisica/HeaderSection.kt` (+8 más) |
+| Índice de calidad POO/SOLID | 5/100 | Destacar: ≥ 60 | — |
+| Métodos/funciones largos o con muchos parámetros | **10** método(s)/función(es) largos o con muchos parámetros | Sin señales | `app/src/main/kotlin/com/example/juegofisica/AnimacionEscenario.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaDificultadMRUV.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaExplicacionMRUV.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaMRUV.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaVictoriaMRUV.kt` |
+| Dependencia de concretos y falta de abstracciones (DIP) | **13** dependencia(s) de concretos sin abstracciones | Sin señales | `app/src/main/kotlin/com/example/juegofisica/AnimacionEscenario.kt`, `app/src/main/kotlin/com/example/juegofisica/CalculadoraWidget.kt`, `app/src/main/kotlin/com/example/juegofisica/CasillaRespuestaWidget.kt`, `app/src/main/kotlin/com/example/juegofisica/ComponentesUI.kt`, `app/src/main/kotlin/com/example/juegofisica/CuadroReglas.kt`, `app/src/main/kotlin/com/example/juegofisica/HeaderSection.kt` (+7 más) |
+| Campos públicos (encapsulación) | **2** clase(s) con campos públicos | Sin señales | `app/src/main/kotlin/com/example/juegofisica/PantallaMRUV.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt` |
+
+## 4. Aspectos evaluados
 
 Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuando el análisis reportó una señal, se agregan preguntas para **investigar la causa** (no hay recetas: entender el porqué es parte de la evaluación).
 
@@ -79,9 +100,10 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 ### 3. Adopción de POO (% de código en clases) (poo) — sin señales
 
-- **Qué mide:** Qué porción del código vive dentro de clases (no de funciones sueltas).
+- **Qué mide:** Proporción de las **líneas de lógica** que viven dentro de una clase. Quedan fuera `package`/`import`/`using`/anotaciones y comentarios/Javadoc/docstrings: no son código que pueda estar dentro de una clase y, si contaran, el porcentaje quedaría topado por el boilerplate de cada archivo.
 - **Por qué importa:** El diseño orientado a objetos es el eje de la materia: el comportamiento debería vivir como método de una clase.
-- **Tu resultado:** **84.3%** del código dentro de clases
+- **Tu resultado:** **97.7%** del código dentro de clases
+- **Cómo leerlo:** Es una **proporción**, no un acumulado: agregar código dentro de una clase no la sube por sí solo (numerador y denominador crecen juntos). Sube cuando el código que está **fuera** de clases (funciones sueltas, `main`, constantes de módulo, scripts) pasa a ser método de una clase o deja de existir. La medición se hace sobre `main`: el trabajo que todavía vive en otra rama no se refleja hasta que se integra.
 
 ### 4. Funciones fuera de clases (sueltas) — sin señales
 
@@ -199,65 +221,6 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 - **Por qué importa:** Es comportamiento procedural disfrazado de clase: no se instancia ni participa del modelo de objetos.
 - **Tu resultado:** **0** clase(s) solo con métodos estáticos
 
-## 4. Anexo: dónde mirar
-
-Archivos donde el análisis encontró cada señal (sin número de línea, a propósito):
-
-**Clase demasiado grande (SRP) (god)** — 1 archivo(s):
-- `app/src/main/kotlin/com/example/juegofisica/AnimacionEscenario.kt`
-
-**Baja cohesión (LCOM) (cohesion)** — 2 archivo(s):
-- `app/src/main/kotlin/com/example/juegofisica/AnimacionEscenario.kt`
-- `app/src/main/kotlin/com/example/juegofisica/TemporizadorPartida.kt`
-
-**Complejidad alta (complejidad)** — 1 archivo(s):
-- `app/src/main/kotlin/com/example/juegofisica/AnimacionEscenario.kt`
-
-**Métodos/funciones largos o con muchos parámetros (tamano)** — 6 archivo(s):
-- `app/src/main/kotlin/com/example/juegofisica/AnimacionEscenario.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaDificultadMRUV.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaExplicacionMRUV.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaMRUV.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaVictoriaMRUV.kt`
-
-**Acoplamiento alto (CBO) (acoplamiento)** — 13 archivo(s):
-- `app/src/main/kotlin/com/example/juegofisica/AnimacionEscenario.kt`
-- `app/src/main/kotlin/com/example/juegofisica/CalculadoraWidget.kt`
-- `app/src/main/kotlin/com/example/juegofisica/CasillaRespuestaWidget.kt`
-- `app/src/main/kotlin/com/example/juegofisica/ComponentesUI.kt`
-- `app/src/main/kotlin/com/example/juegofisica/CuadroReglas.kt`
-- `app/src/main/kotlin/com/example/juegofisica/HeaderSection.kt`
-- `app/src/main/kotlin/com/example/juegofisica/InterfazDeInicio.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaDerrotaMRUV.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaDificultadMRUV.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaExplicacionMRUV.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaMRUV.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaVictoriaMRUV.kt`
-
-**Override vacío o 'no implementado' (LSP) (lsp)** — 1 archivo(s):
-- `app/src/main/kotlin/com/example/juegofisica/PantallaExplicacionMRUV.kt`
-
-**Dependencia de concretos y falta de abstracciones (DIP) (dip)** — 13 archivo(s):
-- `app/src/main/kotlin/com/example/juegofisica/AnimacionEscenario.kt`
-- `app/src/main/kotlin/com/example/juegofisica/CalculadoraWidget.kt`
-- `app/src/main/kotlin/com/example/juegofisica/CasillaRespuestaWidget.kt`
-- `app/src/main/kotlin/com/example/juegofisica/ComponentesUI.kt`
-- `app/src/main/kotlin/com/example/juegofisica/CuadroReglas.kt`
-- `app/src/main/kotlin/com/example/juegofisica/HeaderSection.kt`
-- `app/src/main/kotlin/com/example/juegofisica/InterfazDeInicio.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaDerrotaMRUV.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaDificultadMRUV.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaExplicacionMRUV.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaMRUV.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaVictoriaMRUV.kt`
-
-**Campos públicos (encapsulación) (encapsulacion)** — 2 archivo(s):
-- `app/src/main/kotlin/com/example/juegofisica/PantallaMRUV.kt`
-- `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt`
-
 ## 5. Evolución por commit
 
 Métricas calculadas sobre el estado de `main` en **cada commit** (26 commits con trabajo), del primero al último. La calidad usa el perfil `exigente`; el aporte de código lo mide RepoSense. El índice puede **bajar** al crecer el proyecto: se acumulan señales.
@@ -274,30 +237,30 @@ xychart-beta
 |---|---|---|---|---:|---:|---:|---:|---:|
 | 1 | 2026-08-14 | `812737a` | bchiaramonte-ux | 0 | 0 | 0% | 0.0% | 0 |
 | 2 | 2026-08-24 | `b0e9f11` | dqmdz-etec | 0 | 0 | 0% | 0.0% | 0 |
-| 3 | 2026-08-31 | `4e77849` | bchiaramonte-ux | 171 | 22 | 47% | 0.0% | 1 |
-| 4 | 2026-09-04 | `fe8f0b8` | bchiaramonte-ux | 330 | 7 | 61% | 34.3% | 1 |
-| 5 | 2026-09-04 | `733ab8b` | bchiaramonte-ux | 343 | 11 | 60% | 12.3% | 1 |
-| 6 | 2026-09-07 | `2fc54b0` | bchiaramonte-ux | 460 | 9 | 66% | 16.2% | 1 |
-| 7 | 2026-09-07 | `deb99ac` | bchiaramonte-ux | 566 | 7 | 69% | 20.8% | 1 |
-| 8 | 2026-09-28 | `707ed38` | bchiaramonte-ux | 543 | 7 | 68% | 21.9% | 1 |
-| 9 | 2026-10-02 | `3e681d2` | bchiaramonte-ux | 734 | 5 | 70% | 32.2% | 1 |
-| 10 | 2026-10-02 | `657d351` | bchiaramonte-ux | 650 | 6 | 69% | 32.6% | 1 |
-| 11 | 2026-10-05 | `3b5d59e` | bchiaramonte-ux | 650 | 6 | 69% | 33.9% | 1 |
-| 12 | 2026-10-05 | `7d2dc83` | bchiaramonte-ux | 655 | 6 | 69% | 33.7% | 1 |
-| 13 | 2026-10-05 | `39d0907` | bchiaramonte-ux | 732 | 6 | 72% | 35.6% | 1 |
-| 14 | 2026-10-05 | `3a3b787` | bchiaramonte-ux | 851 | 6 | 75% | 28.8% | 1 |
-| 15 | 2026-10-09 | `cbdf74c` | bchiaramonte-ux | 938 | 6 | 75% | 31.2% | 1 |
-| 16 | 2026-10-09 | `51ecf43` | bchiaramonte-ux | 1,005 | 5 | 76% | 39.9% | 1 |
-| 17 | 2026-10-09 | `403f42c` | bchiaramonte-ux | 1,006 | 5 | 76% | 34.7% | 1 |
-| 18 | 2026-10-09 | `8be2ade` | bchiaramonte-ux | 1,068 | 5 | 77% | 27.6% | 1 |
-| 19 | 2026-10-09 | `ffa096b` | bchiaramonte-ux | 1,317 | 5 | 80% | 21.9% | 1 |
-| 20 | 2026-10-16 | `2086580` | bchiaramonte-ux | 1,326 | 5 | 80% | 23.0% | 1 |
-| 21 | 2026-10-16 | `3077384` | bchiaramonte-ux | 1,583 | 6 | 81% | 22.0% | 1 |
-| 22 | 2026-10-16 | `ccc7b07` | bchiaramonte-ux | 1,679 | 5 | 81% | 24.3% | 1 |
-| 23 | 2026-10-19 | `4231b28` | bchiaramonte-ux | 1,998 | 6 | 81% | 22.4% | 0 |
-| 24 | 2026-10-30 | `d28ecf9` | bchiaramonte-ux | 2,622 | 6 | 84% | 12.7% | 0 |
-| 25 | 2026-10-30 | `bf0bd73` | bchiaramonte-ux | 2,751 | 6 | 85% | 15.1% | 0 |
-| 26 | 2026-10-30 | `acdf5ef` | bchiaramonte-ux | 2,690 | 5 | 84% | 19.0% | 0 |
+| 3 | 2026-08-31 | `4e77849` | bchiaramonte-ux | 171 | 22 | 60% | 0.0% | 1 |
+| 4 | 2026-09-04 | `fe8f0b8` | bchiaramonte-ux | 330 | 7 | 80% | 34.3% | 1 |
+| 5 | 2026-09-04 | `733ab8b` | bchiaramonte-ux | 343 | 11 | 80% | 12.3% | 1 |
+| 6 | 2026-09-07 | `2fc54b0` | bchiaramonte-ux | 460 | 9 | 85% | 16.2% | 1 |
+| 7 | 2026-09-07 | `deb99ac` | bchiaramonte-ux | 566 | 7 | 88% | 20.8% | 1 |
+| 8 | 2026-09-28 | `707ed38` | bchiaramonte-ux | 543 | 7 | 88% | 21.9% | 1 |
+| 9 | 2026-10-02 | `3e681d2` | bchiaramonte-ux | 734 | 5 | 90% | 32.2% | 1 |
+| 10 | 2026-10-02 | `657d351` | bchiaramonte-ux | 650 | 6 | 89% | 32.6% | 1 |
+| 11 | 2026-10-05 | `3b5d59e` | bchiaramonte-ux | 650 | 6 | 89% | 33.9% | 1 |
+| 12 | 2026-10-05 | `7d2dc83` | bchiaramonte-ux | 655 | 6 | 89% | 33.7% | 1 |
+| 13 | 2026-10-05 | `39d0907` | bchiaramonte-ux | 732 | 6 | 90% | 35.6% | 1 |
+| 14 | 2026-10-05 | `3a3b787` | bchiaramonte-ux | 851 | 6 | 92% | 28.8% | 1 |
+| 15 | 2026-10-09 | `cbdf74c` | bchiaramonte-ux | 938 | 6 | 93% | 31.2% | 1 |
+| 16 | 2026-10-09 | `51ecf43` | bchiaramonte-ux | 1,005 | 5 | 93% | 39.9% | 1 |
+| 17 | 2026-10-09 | `403f42c` | bchiaramonte-ux | 1,006 | 5 | 93% | 34.7% | 1 |
+| 18 | 2026-10-09 | `8be2ade` | bchiaramonte-ux | 1,068 | 5 | 94% | 27.6% | 1 |
+| 19 | 2026-10-09 | `ffa096b` | bchiaramonte-ux | 1,317 | 5 | 95% | 21.9% | 1 |
+| 20 | 2026-10-16 | `2086580` | bchiaramonte-ux | 1,326 | 5 | 95% | 23.0% | 1 |
+| 21 | 2026-10-16 | `3077384` | bchiaramonte-ux | 1,583 | 6 | 96% | 22.0% | 1 |
+| 22 | 2026-10-16 | `ccc7b07` | bchiaramonte-ux | 1,679 | 5 | 96% | 24.3% | 1 |
+| 23 | 2026-10-19 | `4231b28` | bchiaramonte-ux | 1,998 | 6 | 97% | 22.4% | 0 |
+| 24 | 2026-10-30 | `d28ecf9` | bchiaramonte-ux | 2,622 | 6 | 98% | 12.7% | 0 |
+| 25 | 2026-10-30 | `bf0bd73` | bchiaramonte-ux | 2,751 | 6 | 98% | 15.1% | 0 |
+| 26 | 2026-10-30 | `acdf5ef` | bchiaramonte-ux | 2,690 | 5 | 98% | 19.0% | 0 |
 
 ---
 _Informe generado por la cátedra. Los criterios y umbrales de medición corresponden al perfil `exigente` de `calidad.py`; el semáforo de aprobación, a `CRITERIOS-CALIDAD.md` (ver `README.md`). Ante dudas, revisá el archivo señalado._
