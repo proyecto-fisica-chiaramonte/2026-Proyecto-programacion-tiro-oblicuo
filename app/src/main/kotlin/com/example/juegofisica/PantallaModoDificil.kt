@@ -195,15 +195,22 @@ class PantallaModoDificil(
         lblContador.text = gestorTemporizador.formatearTiempo(tiempoInicialSegundos)
         gestorTemporizador.iniciar(tiempoInicialSegundos)
 
-        // Apilar: lienzo animado, controles izquierdos, datos derechos, temporizador, reglas y derrota
+        // Cartel de atención centrado en la parte superior
+        val cartelAtencion = componentesUI.crearCartelAtencion()
+
+        // Apilar: lienzo animado, cartel de atención, controles izquierdos, datos derechos, temporizador, reglas y derrota
         root.children.addAll(
             animacionEscenario.canvas,
+            cartelAtencion,
             zonaIzquierda,
             zonaDerecha,
             lblContador,
             cuadroReglas.contenedor,
             pantallaDerrota.contenedor
         )
+
+        StackPane.setAlignment(cartelAtencion, Pos.TOP_CENTER)
+        StackPane.setMargin(cartelAtencion, Insets(12.0, 0.0, 0.0, 0.0))
 
         StackPane.setAlignment(zonaIzquierda, Pos.TOP_LEFT)
         StackPane.setMargin(zonaIzquierda, Insets(15.0))

@@ -45,13 +45,12 @@ class InterfazDeInicio : Application() {
         val headerSection = HeaderSection()
         root.children.add(headerSection.construir())
 
-        // Sección de botones con navegación a MRUV
+        // Sección de botones con navegación directa a la selección de dificultad MRUV
         val menuButtonsSection = MenuButtonsSection(
             onMRUV = {
-                // Ir a la pantalla de explicación del nivel MRUV
-                val pantallaExplicacion = PantallaExplicacionMRUV(primaryStage, menuScene)
-                primaryStage.scene = pantallaExplicacion.crearEscena()
-                primaryStage.title = "Instrucciones MRUV"
+                val pantallaDificultad = PantallaDificultadMRUV(primaryStage, menuScene)
+                primaryStage.scene = pantallaDificultad.crearEscena()
+                primaryStage.title = "Dificultad MRUV"
             }
         )
         root.children.add(menuButtonsSection.construir())
