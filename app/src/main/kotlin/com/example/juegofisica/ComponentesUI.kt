@@ -12,6 +12,7 @@ import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import javafx.scene.text.FontWeight
+import javafx.scene.text.TextAlignment
 
 /**
  * Fábrica y proveedor de componentes visuales compartidos de la interfaz de usuario.
@@ -119,6 +120,32 @@ class ComponentesUI {
                     "-fx-border-radius: 8; " +
                     "-fx-background-radius: 8;"
             children.addAll(*etiquetas)
+        }
+    }
+
+    /**
+     * Crea el contenedor destacado superior con el mensaje de atención para las pantallas de juego MRUV.
+     *
+     * @return Label estilizado con ajuste automático de línea y fondo semitransparente.
+     */
+    fun crearCartelAtencion(): Label {
+        val mensaje = "ATENCION: Este juego consiste en hacer la cuenta matematica correspondiente " +
+                "a la dificultad en menos de un minuto, la formula se encuentra en el apartado reglas " +
+                "dentro del nivel, los datos para resolver esa cuanta estan debajo del apartado reglas"
+        return Label(mensaje).apply {
+            isWrapText = true
+            maxWidth = 215.0
+            maxHeight = Region.USE_PREF_SIZE
+            padding = Insets(6.0, 10.0, 6.0, 10.0)
+            font = Font.font("System", FontWeight.BOLD, 10.0)
+            textFill = Color.web("#FFD700")
+            textAlignment = TextAlignment.CENTER
+            alignment = Pos.CENTER
+            style = "-fx-background-color: rgba(0, 0, 0, 0.82); " +
+                    "-fx-border-color: #FFD700; " +
+                    "-fx-border-width: 1.5; " +
+                    "-fx-border-radius: 8; " +
+                    "-fx-background-radius: 8;"
         }
     }
 }

@@ -117,9 +117,8 @@ class PantallaDificultadMRUV(
                         "-fx-background-radius: 5; -fx-padding: 8 16;"
             }
             setOnAction {
-                val pantallaExplicacion = PantallaExplicacionMRUV(stage, menuScene)
-                stage.scene = pantallaExplicacion.crearEscena()
-                stage.title = "Instrucciones MRUV"
+                stage.scene = menuScene
+                stage.title = "Juego Educativo de Física"
             }
         }
 
