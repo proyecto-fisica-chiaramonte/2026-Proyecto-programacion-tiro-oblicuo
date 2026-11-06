@@ -7,20 +7,19 @@ import javafx.scene.control.Label
 import javafx.scene.control.TextField
 import javafx.scene.control.TextFormatter
 import javafx.scene.layout.HBox
-import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import javafx.scene.text.FontWeight
 
 /**
- * Componente visual compacto para ingresar y verificar la respuesta de la posición final x(t).
+ * Componente visual compacto para ingresar y verificar la respuesta en los niveles de MRUV (SRP / DRY).
  *
- * Se ubica justo debajo de la calculadora en el lado izquierdo de la pantalla.
- * Incluye una etiqueta "X =", un campo de texto numérico reducido (~64px) y un botón "Verificar",
- * además de retroalimentación visual inmediata con cambio de bordes y aviso de resultado.
+ * Incluye una etiqueta indicadora ("X =" o "t ="), un campo numérico filtrado y un botón
+ * "Verificar" con retroalimentación visual unificada mediante [aplicarTemaVisual].
  *
  * @param onVerificar función delegada que valida el texto ingresado y devuelve true si es correcto.
+ * @param etiquetaTexto texto identificador de la incógnita a responder.
  */
 class CasillaRespuestaWidget(
     private val onVerificar: (String) -> Boolean,
@@ -34,52 +33,10 @@ class CasillaRespuestaWidget(
     }
 
     /** Campo de texto reducido para ingresar únicamente números. */
-    private val txtRespuesta: TextField = TextField().apply {
-        promptText = "0"
-        prefWidth = 64.0
-        maxWidth = 68.0
-        prefHeight = 22.0
-        minHeight = 22.0
-        font = Font.font("System", FontWeight.BOLD, 11.0)
-        style = "-fx-background-color: #111111; -fx-text-fill: white; " +
-                "-fx-border-color: #666666; -fx-border-radius: 4; " +
-                "-fx-background-radius: 4; -fx-padding: 2 4;"
-        // Filtro para permitir únicamente caracteres numéricos, punto o coma y signo negativo
-        textFormatter = TextFormatter<String> { change ->
-            val nuevoTexto = change.controlNewText
-            if (nuevoTexto.matches(Regex("^-?\\d*([.,]\\d*)?$"))) {
-                change
-            } else {
-                null
-            }
-        }
-        setOnAction { ejecutarVerificacion() }
-    }
+    private val txtRespuesta: TextField = crearCampoNumerico()
 
     /** Botón compacto para disparar la verificación del resultado ingresado. */
-    private val btnVerificar: Button = Button("Verificar").apply {
-        font = Font.font("System", FontWeight.BOLD, 10.0)
-        prefHeight = 22.0
-        minHeight = 22.0
-        style = "-fx-background-color: #2a2a00; -fx-text-fill: #FFD700; " +
-                "-fx-border-color: #FFD700; -fx-border-radius: 4; " +
-                "-fx-background-radius: 4; -fx-padding: 2 6;"
-        onMouseEntered = {
-            if (lblMensaje.text != "¡CORRECTO!") {
-                style = "-fx-background-color: #3d3d00; -fx-text-fill: #FFD700; " +
-                        "-fx-border-color: #FFAA00; -fx-border-radius: 4; " +
-                        "-fx-background-radius: 4; -fx-padding: 2 6;"
-            }
-        }
-        onMouseExited = {
-            if (lblMensaje.text != "¡CORRECTO!") {
-                style = "-fx-background-color: #2a2a00; -fx-text-fill: #FFD700; " +
-                        "-fx-border-color: #FFD700; -fx-border-radius: 4; " +
-                        "-fx-background-radius: 4; -fx-padding: 2 6;"
-            }
-        }
-        setOnAction { ejecutarVerificacion() }
-    }
+    private val btnVerificar: Button = crearBotonVerificar()
 
     /** Etiqueta pequeña de retroalimentación para mostrar éxito o error al jugador. */
     private val lblMensaje: Label = Label("").apply {
@@ -96,19 +53,14 @@ class CasillaRespuestaWidget(
         padding = Insets(4.0, 6.0, 4.0, 6.0)
         prefWidth = 168.0
         maxWidth = 168.0
-        style = "-fx-background-color: rgba(0, 0, 0, 0.85); " +
-                "-fx-border-color: #666666; " +
-                "-fx-border-width: 1; " +
-                "-fx-border-radius: 6; " +
-                "-fx-background-radius: 6;"
     }
 
     init {
-        val filaEntrada = HBox(4.0).apply {
+        val filaEntrada = HBox(4.0, lblEtiqueta, txtRespuesta, btnVerificar).apply {
             alignment = Pos.CENTER
-            children.addAll(lblEtiqueta, txtRespuesta, btnVerificar)
         }
         contenedor.children.addAll(filaEntrada, lblMensaje)
+        aplicarTemaVisual("#666666", 1, "white", "#2a2a00", "#FFD700", "#FFD700")
     }
 
     /**
@@ -116,54 +68,29 @@ class CasillaRespuestaWidget(
      */
     fun ejecutarVerificacion() {
         val entrada = txtRespuesta.text ?: ""
-        if (entrada.isBlank()) {
+        if (entrada.isBlank() || !onVerificar(entrada)) {
             mostrarIncorrecto("INCORRECTO")
-            return
-        }
-        val esCorrecto = onVerificar(entrada)
-        if (esCorrecto) {
-            mostrarCorrecto("¡CORRECTO!")
         } else {
-            mostrarIncorrecto("INCORRECTO")
+            mostrarCorrecto("¡CORRECTO!")
         }
     }
 
     /**
-     * Muestra mensaje visual positivo con bordes verdes en el contenedor, campo y botón.
+     * Muestra mensaje visual positivo con bordes verdes.
      */
     fun mostrarCorrecto(mensaje: String = "¡CORRECTO!") {
         lblMensaje.text = mensaje
         lblMensaje.textFill = Color.web("#00FF00")
-        contenedor.style = "-fx-background-color: rgba(0, 0, 0, 0.85); " +
-                "-fx-border-color: #00FF00; " +
-                "-fx-border-width: 2; " +
-                "-fx-border-radius: 6; " +
-                "-fx-background-radius: 6;"
-        txtRespuesta.style = "-fx-background-color: #111111; -fx-text-fill: #00FF00; " +
-                "-fx-border-color: #00FF00; -fx-border-radius: 4; " +
-                "-fx-background-radius: 4; -fx-padding: 2 4;"
-        btnVerificar.style = "-fx-background-color: #003300; -fx-text-fill: #00FF00; " +
-                "-fx-border-color: #00FF00; -fx-border-radius: 4; " +
-                "-fx-background-radius: 4; -fx-padding: 2 6;"
+        aplicarTemaVisual("#00FF00", 2, "#00FF00", "#003300", "#00FF00", "#00FF00")
     }
 
     /**
-     * Muestra aviso de error con bordes rojos en el contenedor, campo y botón.
+     * Muestra aviso de error con bordes rojos.
      */
     fun mostrarIncorrecto(mensaje: String = "INCORRECTO") {
         lblMensaje.text = mensaje
         lblMensaje.textFill = Color.web("#FF4444")
-        contenedor.style = "-fx-background-color: rgba(0, 0, 0, 0.85); " +
-                "-fx-border-color: #FF4444; " +
-                "-fx-border-width: 2; " +
-                "-fx-border-radius: 6; " +
-                "-fx-background-radius: 6;"
-        txtRespuesta.style = "-fx-background-color: #111111; -fx-text-fill: #FF6666; " +
-                "-fx-border-color: #FF4444; -fx-border-radius: 4; " +
-                "-fx-background-radius: 4; -fx-padding: 2 4;"
-        btnVerificar.style = "-fx-background-color: #330000; -fx-text-fill: #FF8888; " +
-                "-fx-border-color: #FF4444; -fx-border-radius: 4; " +
-                "-fx-background-radius: 4; -fx-padding: 2 6;"
+        aplicarTemaVisual("#FF4444", 2, "#FF6666", "#330000", "#FF8888", "#FF4444")
     }
 
     /**
@@ -194,16 +121,55 @@ class CasillaRespuestaWidget(
         btnVerificar.isDisable = false
         txtRespuesta.text = ""
         lblMensaje.text = ""
-        contenedor.style = "-fx-background-color: rgba(0, 0, 0, 0.85); " +
-                "-fx-border-color: #666666; " +
-                "-fx-border-width: 1; " +
-                "-fx-border-radius: 6; " +
-                "-fx-background-radius: 6;"
-        txtRespuesta.style = "-fx-background-color: #111111; -fx-text-fill: white; " +
-                "-fx-border-color: #666666; -fx-border-radius: 4; " +
-                "-fx-background-radius: 4; -fx-padding: 2 4;"
-        btnVerificar.style = "-fx-background-color: #2a2a00; -fx-text-fill: #FFD700; " +
-                "-fx-border-color: #FFD700; -fx-border-radius: 4; " +
-                "-fx-background-radius: 4; -fx-padding: 2 6;"
+        aplicarTemaVisual("#666666", 1, "white", "#2a2a00", "#FFD700", "#FFD700")
+    }
+
+    /**
+     * Construye el campo de texto con filtro numérico decimal.
+     */
+    private fun crearCampoNumerico(): TextField {
+        return TextField().apply {
+            promptText = "0"
+            prefWidth = 64.0
+            maxWidth = 68.0
+            prefHeight = 22.0
+            minHeight = 22.0
+            font = Font.font("System", FontWeight.BOLD, 11.0)
+            textFormatter = TextFormatter<String> { change ->
+                if (change.controlNewText.matches(Regex("^-?\\d*([.,]\\d*)?$"))) change else null
+            }
+            setOnAction { ejecutarVerificacion() }
+        }
+    }
+
+    /**
+     * Construye el botón "Verificar" con su acción asociada.
+     */
+    private fun crearBotonVerificar(): Button {
+        return Button("Verificar").apply {
+            font = Font.font("System", FontWeight.BOLD, 10.0)
+            prefHeight = 22.0
+            minHeight = 22.0
+            setOnAction { ejecutarVerificacion() }
+        }
+    }
+
+    /**
+     * Centraliza la actualización de estilos CSS del contenedor, campo de texto y botón (DRY).
+     */
+    private fun aplicarTemaVisual(
+        colorBorde: String,
+        anchoBorde: Int,
+        colorTextoCampo: String,
+        fondoBoton: String,
+        textoBoton: String,
+        bordeBoton: String
+    ) {
+        contenedor.style = "-fx-background-color: rgba(0, 0, 0, 0.85); -fx-border-color: $colorBorde; " +
+                "-fx-border-width: $anchoBorde; -fx-border-radius: 6; -fx-background-radius: 6;"
+        txtRespuesta.style = "-fx-background-color: #111111; -fx-text-fill: $colorTextoCampo; " +
+                "-fx-border-color: $colorBorde; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 2 4;"
+        btnVerificar.style = "-fx-background-color: $fondoBoton; -fx-text-fill: $textoBoton; " +
+                "-fx-border-color: $bordeBoton; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 2 6;"
     }
 }

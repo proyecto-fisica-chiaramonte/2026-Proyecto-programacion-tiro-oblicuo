@@ -5,7 +5,7 @@ import javafx.animation.Timeline
 import javafx.util.Duration
 
 /**
- * Gestor del temporizador de cuenta regresiva para las partidas del juego.
+ * Gestor del temporizador de cuenta regresiva para las partidas del juego (SRP).
  *
  * Encapsula la lógica de cuenta atrás con JavaFX Timeline, el formateo en "mm:ss",
  * y las notificaciones por segundo transcurrido y por finalización del tiempo.
@@ -32,9 +32,6 @@ class TemporizadorPartida(
 
     /**
      * Configura el tiempo inicial y restante de la partida sin iniciar la animación de Timeline.
-     * Útil para inicializar el temporizador y ejecutar pruebas unitarias aisladas.
-     *
-     * @param segundos duración del temporizador en segundos.
      */
     fun configurarTiempo(segundos: Int) {
         detener()
@@ -44,18 +41,10 @@ class TemporizadorPartida(
 
     /**
      * Inicia la cuenta regresiva con la cantidad de segundos especificada.
-     * Si ya había un temporizador corriendo, se detiene antes de comenzar.
-     *
-     * @param segundos duración total del temporizador en segundos (por defecto 60 segundos).
      */
     fun iniciar(segundos: Int = 60) {
         configurarTiempo(segundos)
-
-        timeline = Timeline(
-            KeyFrame(Duration.seconds(1.0), {
-                decrementarSegundo()
-            })
-        ).apply {
+        timeline = Timeline(KeyFrame(Duration.seconds(1.0), { decrementarSegundo() })).apply {
             cycleCount = Timeline.INDEFINITE
             play()
         }
@@ -63,25 +52,19 @@ class TemporizadorPartida(
 
     /**
      * Decrementa un segundo en la cuenta regresiva y dispara los callbacks correspondientes.
-     * Método público para facilitar pruebas unitarias sin depender de la ejecución del hilo gráfico.
-     *
-     * @return true si aún queda tiempo restante, o false si el tiempo se agotó.
      */
     fun decrementarSegundo(): Boolean {
-        if (tiempoRestanteSegundos > 0) {
-            tiempoRestanteSegundos--
-            onTick?.invoke(tiempoRestanteSegundos, formatearTiempo(tiempoRestanteSegundos))
-            if (tiempoRestanteSegundos == 0) {
-                detener()
-                onFin?.invoke()
-                return false
-            }
-            return true
-        } else {
-            detener()
-            onFin?.invoke()
+        if (tiempoRestanteSegundos <= 0) {
+            finalizarCuentaRegresiva()
             return false
         }
+        tiempoRestanteSegundos--
+        onTick?.invoke(tiempoRestanteSegundos, formatearTiempo(tiempoRestanteSegundos))
+        if (tiempoRestanteSegundos == 0) {
+            finalizarCuentaRegresiva()
+            return false
+        }
+        return true
     }
 
     /**
@@ -94,14 +77,14 @@ class TemporizadorPartida(
 
     /**
      * Formatea una cantidad de segundos al formato de reloj mm:ss.
-     *
-     * @param segundos tiempo a formatear (por defecto, los segundos restantes).
-     * @return cadena con el formato "mm:ss".
      */
     fun formatearTiempo(segundos: Int = tiempoRestanteSegundos): String {
-        val totalSegundos = segundos.coerceAtLeast(0)
-        val minutos = totalSegundos / 60
-        val segs = totalSegundos % 60
-        return String.format("%02d:%02d", minutos, segs)
+        val total = segundos.coerceAtLeast(0)
+        return String.format("%02d:%02d", total / 60, total % 60)
+    }
+
+    private fun finalizarCuentaRegresiva() {
+        detener()
+        onFin?.invoke()
     }
 }
