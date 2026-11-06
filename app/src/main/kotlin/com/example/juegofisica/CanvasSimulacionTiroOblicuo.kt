@@ -15,14 +15,14 @@ import kotlin.math.min
 
 /**
  * Lienzo interactivo para renderizar los ejes cartesianos graduados de 10m en 10m y la simulación
- * física completa del Tiro Oblicuo partiendo desde el origen (0, 0) (SRP).
+ * física del Tiro Oblicuo con velocidad visual directamente proporcional a v₀ (SRP).
  *
  * Dibuja un fondo completamente negro (`Color.BLACK`), el eje horizontal X en color azul (`Color.BLUE`)
  * y el eje vertical Y en color rojo (`Color.RED`) con marcas y etiquetas cada 10 metros
  * (10m, 20m, 30m, 40m, ...), calculando dinámicamente la conversión metros-a-píxeles para que la
  * parábola completa (subiendo hasta la altura máxima y_f y cayendo a tierra en x_f) quepa en el Canvas.
  *
- * @property calculador motor físico encargado de evaluar x(t), y(t), v₀ y θ.
+ * @property calculador motor físico encargado de evaluar la trayectoria y el paso temporal.
  * @property onActualizarEstado callback opcional para informar (x, y, yMax, t) durante la simulación.
  */
 class CanvasSimulacionTiroOblicuo(
@@ -42,11 +42,11 @@ class CanvasSimulacionTiroOblicuo(
     /** Aceleración de la gravedad g activa en la simulación (m/s²). */
     private var gravedadActual: Double = 9.8
 
-    /** Alcance horizontal objetivo X (x_f) ingresado por el usuario (m). */
-    private var xfDeseada: Double = 0.0
+    /** Alcance horizontal total de la parábola actual (m). */
+    private var alcanceTotalX: Double = 100.0
 
-    /** Altura máxima/objetivo Y (y_f) ingresada por el usuario (m). */
-    private var yfDeseada: Double = 0.0
+    /** Altura máxima (pico) de la parábola actual (m). */
+    private var alturaPicoY: Double = 20.0
 
     /** Ángulo de lanzamiento θ activo en la simulación (grados). */
     private var anguloActual: Double = 45.0
@@ -54,7 +54,7 @@ class CanvasSimulacionTiroOblicuo(
     /** Tiempo físico transcurrido de la simulación (s). */
     private var tiempoActual: Double = 0.0
 
-    /** Tiempo total de vuelo hasta que la pelota vuelve a tocar el suelo (y = 0). */
+    /** Tiempo total de vuelo derivado de v₀ hasta que la pelota vuelve a tocar el suelo (y = 0). */
     private var tiempoVueloTotal: Double = 0.0
 
     /** Coordenada X actual de la pelota blanca en metros. */
@@ -97,43 +97,48 @@ class CanvasSimulacionTiroOblicuo(
     }
 
     /**
-     * Configura los parámetros e inicia la simulación animada desde el origen (0, 0) durante todo
-     * el tiempo de vuelo t_total hasta que la pelota vuelve a tocar el suelo (y = 0) en x_f.
-     *
-     * Si el usuario ingresa x_f > 0 e y_f > 0 (ej. x_f = 10, y_f = 10), calcula automáticamente
-     * v₀ y θ para que el proyectil suba pasando exactamente por el pico y = y_f y descienda hasta
-     * impactar en el suelo (y = 0) en x = x_f.
+     * Configura los parámetros e inicia la simulación animada desde el origen (0, 0) haciendo que
+     * la velocidad visual de la pelota sea directamente proporcional al valor de v₀ ingresado
+     * (ej. lenta con v₀ = 10 m/s y rápida con v₀ = 100 m/s), respetando las coordenadas objetivo (x_f, y_f).
      */
     fun simular(v0: Double, gravedad: Double, xf: Double, yf: Double, anguloGrados: Double) {
         detener()
         gravedadActual = if (gravedad > 0.0) gravedad else 9.8
-        xfDeseada = max(0.0, xf)
-        yfDeseada = max(0.0, yf)
+        val xfDeseada = max(0.0, xf)
+        val yfDeseada = max(0.0, yf)
 
-        if (xfDeseada > 0.0 && yfDeseada > 0.0) {
-            anguloActual = calculador.calcularAnguloParaPicoYAlcance(xfDeseada, yfDeseada, anguloGrados)
-            v0Actual = calculador.calcularVelocidadInicialRequerida(
-                v0,
-                xfDeseada,
-                yfDeseada,
-                anguloActual,
-                gravedadActual
-            )
-        } else if (xfDeseada > 0.0 || yfDeseada > 0.0 || v0 <= 0.0) {
-            anguloActual = anguloGrados.coerceIn(5.0, 85.0)
-            v0Actual = calculador.calcularVelocidadInicialRequerida(
-                v0,
-                xfDeseada,
-                yfDeseada,
-                anguloActual,
-                gravedadActual
-            )
+        anguloActual = if (xfDeseada > 0.0 && yfDeseada > 0.0 && v0 <= 0.0) {
+            calculador.calcularAnguloParaPicoYAlcance(xfDeseada, yfDeseada, anguloGrados)
         } else {
-            anguloActual = anguloGrados.coerceIn(5.0, 85.0)
-            v0Actual = v0
+            anguloGrados.coerceIn(5.0, 85.0)
         }
 
-        tiempoVueloTotal = calculador.calcularTiempoVuelo(0.0, v0Actual, anguloActual, gravedadActual)
+        v0Actual = calculador.calcularVelocidadInicialRequerida(
+            v0,
+            xfDeseada,
+            yfDeseada,
+            anguloActual,
+            gravedadActual
+        )
+
+        alcanceTotalX = if (xfDeseada > 0.0) {
+            xfDeseada
+        } else {
+            max(1.0, calculador.calcularAlcanceHorizontal(0.0, v0Actual, anguloActual, gravedadActual))
+        }
+
+        alturaPicoY = if (yfDeseada > 0.0) {
+            yfDeseada
+        } else {
+            max(1.0, calculador.calcularAlturaMaxima(0.0, v0Actual, anguloActual, gravedadActual))
+        }
+
+        tiempoVueloTotal = calculador.calcularTiempoVueloConVelocidad(
+            v0Actual,
+            alcanceTotalX,
+            anguloActual,
+            gravedadActual
+        )
 
         // El tiro comienza siempre desde el origen cartesiano (0, 0)
         tiempoActual = 0.0
@@ -154,9 +159,10 @@ class CanvasSimulacionTiroOblicuo(
             return
         }
 
-        // Duración visual fluida (~2.8 s en pantalla) asegurando pasar por el vértice t_total / 2
-        val pasosTotales = 110
-        val pasoTiempoFisico = tiempoVueloTotal / pasosTotales.toDouble()
+        // La duración en pantalla es inversamente proporcional a v₀ (velocidad visual proporcional a v₀)
+        val duracionVisualSegundos = calculador.calcularDuracionVisualSegundos(v0Actual)
+        val cuadrosTotales = max(6.0, duracionVisualSegundos * 40.0)
+        val pasoTiempoFisico = tiempoVueloTotal / cuadrosTotales
 
         timeline = Timeline(
             KeyFrame(Duration.millis(25.0), {
@@ -179,8 +185,8 @@ class CanvasSimulacionTiroOblicuo(
         pelotaX = 0.0
         pelotaY = 0.0
         alturaMaximaRecorrida = 0.0
-        xfDeseada = 0.0
-        yfDeseada = 0.0
+        alcanceTotalX = 0.0
+        alturaPicoY = 0.0
         estelaX.clear()
         estelaY.clear()
 
@@ -200,8 +206,8 @@ class CanvasSimulacionTiroOblicuo(
     }
 
     /**
-     * Evalúa x(t) = v₀·cos(θ)·t e y(t) = v₀·sen(θ)·t - ½·g·t² durante todo el tiempo de vuelo
-     * t_total hasta que la pelota vuelve a tocar el suelo (y = 0) en x_f.
+     * Avanza el tiempo simulado en Δt sincronizado con v₀, trazando la parábola que sube por
+     * el pico y_f y desciende hasta tocar tierra (y = 0) en x_f.
      */
     private fun avanzarPaso(dt: Double) {
         val mitadVuelo = tiempoVueloTotal * 0.5
@@ -212,23 +218,26 @@ class CanvasSimulacionTiroOblicuo(
         }
         tiempoActual = siguienteTiempo
 
-        val xCalc = calculador.calcularX(0.0, v0Actual, anguloActual, tiempoActual)
-        val yCalc = calculador.calcularY(0.0, v0Actual, anguloActual, gravedadActual, tiempoActual)
+        val progreso = if (tiempoVueloTotal > 0.0) {
+            (tiempoActual / tiempoVueloTotal).coerceIn(0.0, 1.0)
+        } else {
+            1.0
+        }
 
-        if (tiempoActual >= tiempoVueloTotal || (yCalc <= 0.0 && tiempoActual > mitadVuelo)) {
+        val xCalc = alcanceTotalX * progreso
+        val yCalc = calculador.calcularYParabolaCompleta(alturaPicoY, progreso)
+
+        if (tiempoActual >= tiempoVueloTotal || progreso >= 1.0) {
             tiempoActual = tiempoVueloTotal
-            pelotaX = if (xfDeseada > 0.0) xfDeseada else calculador.calcularX(0.0, v0Actual, anguloActual, tiempoVueloTotal)
+            pelotaX = alcanceTotalX
             pelotaY = 0.0
-            alturaMaximaRecorrida = max(
-                alturaMaximaRecorrida,
-                calculador.calcularAlturaMaxima(0.0, v0Actual, anguloActual, gravedadActual)
-            )
+            alturaMaximaRecorrida = max(alturaMaximaRecorrida, alturaPicoY)
             estelaX.add(pelotaX)
             estelaY.add(pelotaY)
             detener()
         } else {
             pelotaX = xCalc
-            pelotaY = max(0.0, yCalc)
+            pelotaY = yCalc
             alturaMaximaRecorrida = max(alturaMaximaRecorrida, pelotaY)
             estelaX.add(pelotaX)
             estelaY.add(pelotaY)
@@ -243,11 +252,8 @@ class CanvasSimulacionTiroOblicuo(
      * parábola (su pico y_f y su caída en x_f) entre dentro del área visible del Canvas.
      */
     private fun ajustarEscalaZoom10m() {
-        val alcanceFisicoX = calculador.calcularAlcanceHorizontal(0.0, v0Actual, anguloActual, gravedadActual)
-        val alturaMaximaFisicaY = calculador.calcularAlturaMaxima(0.0, v0Actual, anguloActual, gravedadActual)
-
-        val maxRequeridoX = max(alcanceFisicoX, xfDeseada)
-        val maxRequeridoY = max(alturaMaximaFisicaY, yfDeseada)
+        val maxRequeridoX = max(10.0, alcanceTotalX)
+        val maxRequeridoY = max(10.0, alturaPicoY)
 
         // Redondear hacia arriba al siguiente múltiplo de 10m con margen visual del 15-20%
         maxEscalaX = max(50.0, ceil((maxRequeridoX * 1.15) / 10.0) * 10.0)
