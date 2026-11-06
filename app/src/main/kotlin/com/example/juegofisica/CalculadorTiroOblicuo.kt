@@ -9,11 +9,10 @@ import kotlin.math.sqrt
 /**
  * Motor de cálculo físico para la simulación de Tiro Oblicuo (Principio de Responsabilidad Única - SRP).
  *
- * Evalúa las ecuaciones cinemáticas exactas del movimiento parabólico partiendo desde el origen (0, 0):
+ * Evalúa las ecuaciones cinemáticas del movimiento parabólico partiendo desde el origen (0, 0):
  * - x(t) = v₀ · cos(θ) · t
  * - y(t) = v₀ · sen(θ) · t - ½ · g · t²
- * y calcula automáticamente la velocidad inicial (v₀) y el ángulo (θ) necesarios para que el proyectil
- * alcance una altura máxima (pico) y_f y caiga a tierra (y = 0) exactamente en el alcance horizontal x_f.
+ * respetando tanto la velocidad inicial (v₀) ingresada por el usuario como las coordenadas objetivo (x_f, y_f).
  */
 class CalculadorTiroOblicuo {
 
@@ -38,6 +37,18 @@ class CalculadorTiroOblicuo {
     }
 
     /**
+     * Evalúa la altura parabólica y(t) en función del progreso normalizado u = t / t_total (0 <= u <= 1),
+     * garantizando que la pelota suba exactamente hasta la altura máxima yMax en u = 0.5 y vuelva a
+     * tocar tierra (y = 0) en u = 1.0:
+     *
+     * Ecuación equivalente a v₀·sen(θ)·t - ½·g·t²: y(u) = 4 · y_máx · u · (1 - u)
+     */
+    fun calcularYParabolaCompleta(yMax: Double, progresoNormalizado: Double): Double {
+        val u = progresoNormalizado.coerceIn(0.0, 1.0)
+        return max(0.0, 4.0 * max(0.0, yMax) * u * (1.0 - u))
+    }
+
+    /**
      * Calcula el tiempo total de vuelo t_total en segundos hasta que la pelota vuelve a tocar tierra (y = 0).
      */
     fun calcularTiempoVuelo(y0: Double, v0: Double, anguloGrados: Double, gravedad: Double): Double {
@@ -49,6 +60,40 @@ class CalculadorTiroOblicuo {
         if (discriminante < 0.0) return 0.0
         val tiempo = (vy0 + sqrt(discriminante)) / gravedad
         return max(0.0, tiempo)
+    }
+
+    /**
+     * Calcula el tiempo total de vuelo derivado directamente de la velocidad inicial v₀, el ángulo θ
+     * y el alcance objetivo x_f: t_total = x_f / (v₀ · cos(θ)).
+     * Si no se especifica x_f (> 0), emplea el tiempo de vuelo clásico 2·v₀·sen(θ)/g.
+     */
+    fun calcularTiempoVueloConVelocidad(
+        v0: Double,
+        xf: Double,
+        anguloGrados: Double,
+        gravedad: Double
+    ): Double {
+        val velocidad = max(1.0, v0)
+        val anguloSeguro = anguloGrados.coerceIn(5.0, 85.0)
+        if (xf > 0.0) {
+            val vx = max(0.5, velocidad * cos(Math.toRadians(anguloSeguro)))
+            return max(0.05, xf / vx)
+        }
+        return max(0.05, calcularTiempoVuelo(0.0, velocidad, anguloSeguro, gravedad))
+    }
+
+    /**
+     * Calcula la duración visual de la animación en segundos de forma inversamente proporcional a v₀
+     * (de modo que la velocidad visual en pantalla sea directamente proporcional a v₀).
+     *
+     * Ejemplos:
+     * - v₀ = 10 m/s  -> ~4.50 s en pantalla (desplazamiento lento y pausado)
+     * - v₀ = 30 m/s  -> ~1.50 s en pantalla (desplazamiento medio)
+     * - v₀ = 100 m/s -> ~0.45 s en pantalla (desplazamiento rápido, 10x más veloz que v₀ = 10 m/s)
+     */
+    fun calcularDuracionVisualSegundos(v0: Double): Double {
+        val velocidad = max(1.0, v0)
+        return (45.0 / velocidad).coerceIn(0.20, 8.0)
     }
 
     /**
@@ -82,8 +127,6 @@ class CalculadorTiroOblicuo {
     /**
      * Calcula el ángulo de lanzamiento θ (en grados) necesario para que una parábola que parte
      * de (0, 0) alcance una altura máxima (pico) de y_f metros y caiga a tierra (y = 0) en x_f metros.
-     *
-     * Relación física exacta: tan(θ) = (4 · y_f) / x_f
      */
     fun calcularAnguloParaPicoYAlcance(xf: Double, yf: Double, anguloPorDefecto: Double): Double {
         if (xf <= 0.0 || yf <= 0.0) {
@@ -96,10 +139,8 @@ class CalculadorTiroOblicuo {
     }
 
     /**
-     * Calcula la velocidad inicial v₀ (m/s) necesaria para que el proyectil:
-     * - Si se especifican x_f > 0 e y_f > 0: suba hasta el pico y_f y caiga en x_f (y = 0).
-     * - Si sólo se especifica x_f > 0 (con y_f <= 0): alcance horizontalmente x_f con el ángulo θ dado.
-     * - Si sólo se especifica y_f > 0 (con x_f <= 0): suba hasta la altura máxima y_f con el ángulo θ dado.
+     * Calcula la velocidad inicial v₀ (m/s): si el usuario ingresó un valor explícito v₀ > 0,
+     * lo respeta directamente; si v₀ <= 0 (omitido), lo deduce de (x_f, y_f, θ, g).
      */
     fun calcularVelocidadInicialRequerida(
         v0Ingresada: Double,
@@ -108,6 +149,9 @@ class CalculadorTiroOblicuo {
         anguloGrados: Double,
         gravedad: Double
     ): Double {
+        if (v0Ingresada > 0.0) {
+            return v0Ingresada
+        }
         val g = if (gravedad > 0.0) gravedad else 9.8
         if (xf > 0.0 && yf > 0.0) {
             val vy0 = sqrt(2.0 * g * yf)
@@ -126,6 +170,6 @@ class CalculadorTiroOblicuo {
             val vy0 = sqrt(2.0 * g * yf)
             return vy0 / senTheta
         }
-        return if (v0Ingresada > 0.0) v0Ingresada else 30.0
+        return 30.0
     }
 }

@@ -61,7 +61,7 @@ class PantallaSimulacionTiroOblicuo(
     )
 
     /** 1. Campo de entrada para la velocidad inicial v₀ (m/s). */
-    private val txtVelocidadInicial: TextField = crearCampoParametro("", "Auto (m/s)")
+    private val txtVelocidadInicial: TextField = crearCampoParametro("30", "m/s")
 
     /** 2. Campo de entrada para la aceleración de la gravedad g (m/s², por defecto 9.8). */
     private val txtGravedad: TextField = crearCampoParametro("9.8", "9.8")

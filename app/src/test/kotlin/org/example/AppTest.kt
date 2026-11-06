@@ -206,5 +206,15 @@ class AppTest {
         // Al finalizar el vuelo (t = tTotal), cae a tierra en (x = 10m, y = 0m)
         assertEquals(10.0, calc.calcularX(0.0, v0Pico, anguloPico, tTotal), 0.001)
         assertEquals(0.0, calc.calcularY(0.0, v0Pico, anguloPico, 9.8, tTotal), 0.001)
+
+        // Verificar que la velocidad v0 impacta directamente en el tiempo de vuelo y en la duración visual:
+        // Con v0 = 100 m/s es 10 veces más rápido que con v0 = 10 m/s
+        val duracionLenta = calc.calcularDuracionVisualSegundos(10.0)
+        val duracionRapida = calc.calcularDuracionVisualSegundos(100.0)
+        assertTrue(duracionLenta > duracionRapida * 9.0)
+
+        val tVueloLento = calc.calcularTiempoVueloConVelocidad(v0 = 10.0, xf = 100.0, anguloGrados = 45.0, gravedad = 9.8)
+        val tVueloRapido = calc.calcularTiempoVueloConVelocidad(v0 = 100.0, xf = 100.0, anguloGrados = 45.0, gravedad = 9.8)
+        assertEquals(tVueloLento / 10.0, tVueloRapido, 0.0001)
     }
 }
