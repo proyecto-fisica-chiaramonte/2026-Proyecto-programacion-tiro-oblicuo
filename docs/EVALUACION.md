@@ -3,20 +3,20 @@
 
 > Documento **generado automáticamente** por la cátedra de Programación II (RepoSense + análisis de calidad POO/SOLID). **No editar a mano**: se regenera en cada evaluación.
 > Rama evaluada: `main`. Análisis **heurístico** (regex + métricas): es una criba para orientar la revisión, **no una nota**.
-> Generado: 2026-11-02.
+> Generado: 2026-11-06.
 
 ## 1. Veredicto
 
 | Aspecto | Resultado |
 |---|---|
-| Índice de calidad POO/SOLID | **6/100** |
+| Índice de calidad POO/SOLID | **35/100** |
 | Código (LOC) | 2,730 |
 | Archivos de código | 26 |
-| Clases (bien usadas) | 24 (6 OK) |
+| Clases (bien usadas) | 24 (11 OK) |
 | Código dentro de clases (%POO) | 98% |
 | Funciones fuera de clases | 0 |
 | Duplicación lógica | 17.6% |
-| Señales S/O/L/I/D | 4/0/0/0/12 |
+| Señales S/O/L/I/D | 4/0/0/0/4 |
 | Tope duro aplicado | `DUP>=15%` → índice ≤ 50 |
 
 > Este informe **describe** lo que el análisis midió con los criterios ya establecidos de la materia. No es una nota.
@@ -37,7 +37,7 @@ Criterios de `CRITERIOS-CALIDAD.md`. **Aprobar** se juega con el perfil `estanda
 | Código dentro de clases (%POO) | ≥ 85% | 98% | sí |
 | Duplicación lógica | ≤ 10% | 17.6% | no |
 | Funciones fuera de clases | ≤ 1 | 0 | sí |
-| Señales POO/SOLID críticas | ninguna | Complejidad alta, Acoplamiento alto (CBO) | no |
+| Señales POO/SOLID críticas | ninguna | Complejidad alta | no |
 
 **Criterios para destacar**
 
@@ -47,7 +47,7 @@ Criterios de `CRITERIOS-CALIDAD.md`. **Aprobar** se juega con el perfil `estanda
 | Duplicación lógica | ≤ 5% | 17.6% | no |
 | Funciones fuera de clases | ≤ 1 | 0 | sí |
 | Señales POO/SOLID críticas | ninguna | Clase demasiado grande (SRP), Baja cohesión (LCOM), Complejidad alta, Acoplamiento alto (CBO) | no |
-| Índice de calidad POO/SOLID | ≥ 60 | 6/100 | no |
+| Índice de calidad POO/SOLID | ≥ 60 | 35/100 | no |
 
 ### Cómo se calcula el %POO (y por qué no sube solo)
 
@@ -61,7 +61,7 @@ Sube cuando el código que hoy está **fuera** de clases pasa a ser método de u
 
 | Autor | Commits | Código (LOC) | Tests (LOC) | Docs (LOC) | Días activos | % del código |
 |---|---:|---:|---:|---:|---:|---:|
-| bchiaramonte-ux | 30 | 2,937 | 171 | 1 | 13 | 100% |
+| bchiaramonte-ux | 31 | 3,705 | 210 | 1 | 14 | 100% |
 
 > _El LOC de autoría lo calcula RepoSense sobre el historial y puede diferir del LOC de código del análisis de calidad (que mira solo el estado de `main`)._
 
@@ -72,10 +72,10 @@ Reúne lo que el análisis marcó y lo que todavía falta para cada semáforo. C
 | Falla | Tu resultado | Requisito | Archivos |
 |---|---|---|---|
 | Duplicación lógica | 17.6% | Aprobar: ≤ 10%<br>Destacar: ≤ 5% | `app/src/main/kotlin/com/example/juegofisica/CasillaRespuestaWidget.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaDerrotaMRUV.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaDificultadMRUV.kt` |
-| Señales POO/SOLID críticas | Complejidad alta, Acoplamiento alto (CBO) | Aprobar: ninguna<br>Destacar: ninguna | `app/src/main/kotlin/com/example/juegofisica/AnimacionEscenario.kt`, `app/src/main/kotlin/com/example/juegofisica/CalculadoraWidget.kt`, `app/src/main/kotlin/com/example/juegofisica/CasillaRespuestaWidget.kt`, `app/src/main/kotlin/com/example/juegofisica/ComponentesUI.kt`, `app/src/main/kotlin/com/example/juegofisica/CuadroReglas.kt`, `app/src/main/kotlin/com/example/juegofisica/HeaderSection.kt` (+8 más) |
-| Índice de calidad POO/SOLID | 6/100 | Destacar: ≥ 60 | — |
+| Señales POO/SOLID críticas | Complejidad alta | Aprobar: ninguna<br>Destacar: ninguna | `app/src/main/kotlin/com/example/juegofisica/AnimacionEscenario.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaMRUV.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt`, `app/src/main/kotlin/com/example/juegofisica/TemporizadorPartida.kt`, `app/src/main/kotlin/com/example/juegofisica/TrenCarbonWidget.kt` |
+| Índice de calidad POO/SOLID | 35/100 | Destacar: ≥ 60 | — |
 | Métodos/funciones largos o con muchos parámetros | **10** método(s)/función(es) largos o con muchos parámetros | Sin señales | `app/src/main/kotlin/com/example/juegofisica/AnimacionEscenario.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaDificultadMRUV.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaMRUV.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaVictoriaMRUV.kt`, `app/src/main/kotlin/com/example/juegofisica/TrenCarbonWidget.kt` |
-| Dependencia de concretos y falta de abstracciones (DIP) | **12** dependencia(s) de concretos sin abstracciones | Sin señales | `app/src/main/kotlin/com/example/juegofisica/AnimacionEscenario.kt`, `app/src/main/kotlin/com/example/juegofisica/CalculadoraWidget.kt`, `app/src/main/kotlin/com/example/juegofisica/CasillaRespuestaWidget.kt`, `app/src/main/kotlin/com/example/juegofisica/ComponentesUI.kt`, `app/src/main/kotlin/com/example/juegofisica/CuadroReglas.kt`, `app/src/main/kotlin/com/example/juegofisica/HeaderSection.kt` (+6 más) |
+| Dependencia de concretos y falta de abstracciones (DIP) | **4** dependencia(s) de concretos sin abstracciones | Sin señales | `app/src/main/kotlin/com/example/juegofisica/InterfazDeInicio.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaMRUV.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt`, `app/src/test/kotlin/org/example/AppTest.kt` |
 | Campos públicos (encapsulación) | **2** clase(s) con campos públicos | Sin señales | `app/src/main/kotlin/com/example/juegofisica/PantallaMRUV.kt`, `app/src/main/kotlin/com/example/juegofisica/PantallaModoDificil.kt` |
 
 ## 4. Aspectos evaluados
@@ -86,7 +86,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 - **Qué mide:** Un resumen numérico (0-100) que combina la riqueza de clases bien usadas con la penalización por señales POO/SOLID y duplicación, y luego aplica topes duros.
 - **Por qué importa:** Ordena y prioriza la revisión: un índice bajo indica varias señales que conviene mirar juntas.
-- **Tu resultado:** índice **6/100**
+- **Tu resultado:** índice **35/100**
 
 ### 2. Duplicación lógica (DRY) (duplicacion) — con señales
 
@@ -153,9 +153,9 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 ### 9. Acoplamiento alto (CBO) (acoplamiento) — con señales
 
-- **Qué mide:** Cuánto depende una clase de otros tipos del proyecto.
+- **Qué mide:** Cuánto depende una clase de otros tipos del proyecto. No cuentan los tipos de la plataforma (biblioteca estándar, DOM, motor Godot) ni los métodos/propiedades propias.
 - **Por qué importa:** Piezas muy enlazadas hacen que un cambio se propague y que sea difícil reemplazar partes.
-- **Tu resultado:** **12** clase(s) muy acoplada(s)
+- **Tu resultado:** **2** clase(s) muy acoplada(s)
 - **Para investigar la causa:**
     - ¿La clase conoce detalles internos de muchas otras?
     - ¿Se puede cambiar una parte sin tocar las demás?
@@ -169,7 +169,7 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 ### 11. Switch sobre tipos (OCP) (ocp) — sin señales
 
-- **Qué mide:** Chequeos repetidos de tipo (`instanceof`/`is`/`typeof`) que equivalen a un switch sobre el tipo.
+- **Qué mide:** Cadenas de dispatch por tipo (`else if ... is` / `else if ... instanceof`, `switch` sobre tipo o `typeof`). Un `is Tipo variable` aislado (pattern matching / cast seguro) NO cuenta como switch.
 - **Por qué importa:** Cada tipo nuevo obliga a tocar varios lugares, en vez de extender con una implementación nueva.
 - **Tu resultado:** **0** clase(s) con switch sobre tipos
 
@@ -187,9 +187,9 @@ Cada aspecto indica **qué mide**, **por qué importa** y **tu resultado**. Cuan
 
 ### 14. Dependencia de concretos y falta de abstracciones (DIP) (dip) — con señales
 
-- **Qué mide:** Instanciación directa de clases concretas y ausencia de interfaces o clases abstractas pese al acoplamiento.
+- **Qué mide:** Instanciación directa de clases **propias** concretas y ausencia de interfaces o clases abstractas pese al acoplamiento. No cuentan los structs ni los nodos/tipos del motor.
 - **Por qué importa:** Depender de implementaciones concretas dificulta cambiar o probar una parte sin arrastrar las demás.
-- **Tu resultado:** **12** dependencia(s) de concretos sin abstracciones
+- **Tu resultado:** **4** dependencia(s) de concretos sin abstracciones
 - **Para investigar la causa:**
     - ¿La clase crea por dentro a sus colaboradores en vez de recibirlos?
     - ¿Hay puntos de variación que convendría expresar como abstracción?
