@@ -1,5 +1,6 @@
 package org.example
 
+import com.example.juegofisica.CalculadorTiroOblicuo
 import com.example.juegofisica.ICalculadora
 import com.example.juegofisica.IValidadorRespuesta
 import com.example.juegofisica.MotorCalculadora
@@ -167,5 +168,43 @@ class AppTest {
         assertTrue(validadorTiempo.validar("4,05", 4.0))
         assertFalse(validadorTiempo.validar("5", 4.0))
         assertFalse(validadorTiempo.validar("abc", 4.0))
+    }
+
+    @Test
+    fun testCalculadorTiroOblicuo() {
+        val calc = CalculadorTiroOblicuo()
+
+        // Lanzamiento horizontal (0 grados): x(2) = 10 + 20 * 1 * 2 = 50
+        assertEquals(50.0, calc.calcularX(x0 = 10.0, v0 = 20.0, anguloGrados = 0.0, t = 2.0), 0.0001)
+
+        // Lanzamiento vertical (90 grados), y0 = 0, v0 = 20, g = 10: y(1) = 20*1 - 0.5*10*1 = 15
+        assertEquals(15.0, calc.calcularY(y0 = 0.0, v0 = 20.0, anguloGrados = 90.0, gravedad = 10.0, t = 1.0), 0.0001)
+
+        // Tiempo de vuelo con y0 = 0, v0 = 20, angulo = 90, g = 10 => t = 2*20/10 = 4.0s
+        assertEquals(4.0, calc.calcularTiempoVuelo(y0 = 0.0, v0 = 20.0, anguloGrados = 90.0, gravedad = 10.0), 0.0001)
+
+        // Altura máxima con y0 = 0, v0 = 20, angulo = 90, g = 10 => h = 400 / 20 = 20.0m
+        assertEquals(20.0, calc.calcularAlturaMaxima(y0 = 0.0, v0 = 20.0, anguloGrados = 90.0, gravedad = 10.0), 0.0001)
+
+        // Alcance horizontal clásico con y0 = 0, v0 = 20, angulo = 45, g = 10 => R = 400 * 1 / 10 = 40.0m
+        assertEquals(40.0, calc.calcularAlcanceHorizontal(y0 = 0.0, v0 = 20.0, anguloGrados = 45.0, gravedad = 10.0), 0.0001)
+
+        // Lanzamiento desde altura inicial y0 = 20m, horizontal (angulo = 0), v0 = 15, g = 10:
+        // t_vuelo = sqrt(2*20/10) = 2.0s, y(1.0) = 20 - 0.5*10*1 = 15.0m
+        assertEquals(2.0, calc.calcularTiempoVuelo(y0 = 20.0, v0 = 15.0, anguloGrados = 0.0, gravedad = 10.0), 0.0001)
+        assertEquals(15.0, calc.calcularY(y0 = 20.0, v0 = 15.0, anguloGrados = 0.0, gravedad = 10.0, t = 1.0), 0.0001)
+
+        // Verificar que con xf = 10m e yf = 10m desde (0, 0), la pelota sube al pico y = 10m y cae en x = 10m (y = 0m)
+        val anguloPico = calc.calcularAnguloParaPicoYAlcance(xf = 10.0, yf = 10.0, anguloPorDefecto = 45.0)
+        val v0Pico = calc.calcularVelocidadInicialRequerida(v0Ingresada = 0.0, xf = 10.0, yf = 10.0, anguloGrados = anguloPico, gravedad = 9.8)
+        val tTotal = calc.calcularTiempoVuelo(y0 = 0.0, v0 = v0Pico, anguloGrados = anguloPico, gravedad = 9.8)
+
+        // En la mitad del vuelo (t = tTotal / 2), pasa por el pico (x = 5m, y = 10m)
+        assertEquals(5.0, calc.calcularX(0.0, v0Pico, anguloPico, tTotal * 0.5), 0.001)
+        assertEquals(10.0, calc.calcularY(0.0, v0Pico, anguloPico, 9.8, tTotal * 0.5), 0.001)
+
+        // Al finalizar el vuelo (t = tTotal), cae a tierra en (x = 10m, y = 0m)
+        assertEquals(10.0, calc.calcularX(0.0, v0Pico, anguloPico, tTotal), 0.001)
+        assertEquals(0.0, calc.calcularY(0.0, v0Pico, anguloPico, 9.8, tTotal), 0.001)
     }
 }

@@ -45,12 +45,17 @@ class InterfazDeInicio : Application() {
         val headerSection = HeaderSection()
         root.children.add(headerSection.construir())
 
-        // Sección de botones con navegación directa a la selección de dificultad MRUV
+        // Sección de botones con navegación a MRUV y Simulación de Tiro Oblicuo
         val menuButtonsSection = MenuButtonsSection(
             onMRUV = {
                 val pantallaDificultad = PantallaDificultadMRUV(primaryStage, menuScene)
                 primaryStage.scene = pantallaDificultad.crearEscena()
                 primaryStage.title = "Dificultad MRUV"
+            },
+            onTiroOblicuo = {
+                val pantallaTiroOblicuo = PantallaSimulacionTiroOblicuo(primaryStage, menuScene)
+                primaryStage.scene = pantallaTiroOblicuo.crearEscena()
+                primaryStage.title = "Simulación de Tiro Oblicuo"
             }
         )
         root.children.add(menuButtonsSection.construir())
