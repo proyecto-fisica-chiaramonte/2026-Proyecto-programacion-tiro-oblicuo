@@ -3,24 +3,18 @@ package com.example.juegofisica
 import javafx.animation.KeyFrame
 import javafx.animation.Timeline
 import javafx.scene.canvas.Canvas
-import javafx.scene.canvas.GraphicsContext
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color
-import javafx.scene.text.Font
-import javafx.scene.text.FontWeight
 import javafx.util.Duration
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Lienzo interactivo para renderizar los ejes cartesianos graduados de 10m en 10m y la simulación
- * física del Tiro Oblicuo con velocidad visual directamente proporcional a v₀ (SRP).
+ * Controlador del lienzo y bucle de animación para la simulación de Tiro Oblicuo (SRP).
  *
- * Dibuja un fondo completamente negro (`Color.BLACK`), el eje horizontal X en color azul (`Color.BLUE`)
- * y el eje vertical Y en color rojo (`Color.RED`) con marcas y etiquetas cada 10 metros
- * (10m, 20m, 30m, 40m, ...), calculando dinámicamente la conversión metros-a-píxeles para que la
- * parábola completa (subiendo hasta la altura máxima y_f y cayendo a tierra en x_f) quepa en el Canvas.
+ * Delega los cálculos matemáticos en [CalculadorTiroOblicuo] y el trazado de los ejes,
+ * la grilla de 10m en 10m y la pelota en [RenderizadorPlanoCartesiano].
  *
  * @property calculador motor físico encargado de evaluar la trayectoria y el paso temporal.
  * @property onActualizarEstado callback opcional para informar (x, y, yMax, t) durante la simulación.
@@ -32,6 +26,9 @@ class CanvasSimulacionTiroOblicuo(
 
     /** Canvas de JavaFX donde se dibuja el plano cartesiano y la trayectoria. */
     val canvas: Canvas = Canvas(400.0, 300.0)
+
+    /** Renderizador dedicado para los ejes cartesianos y la pelota blanca (SRP). */
+    private val renderizadorPlano: RenderizadorPlanoCartesiano = RenderizadorPlanoCartesiano()
 
     /** Timeline para el bucle de simulación a 40 FPS. */
     private var timeline: Timeline? = null
@@ -66,10 +63,10 @@ class CanvasSimulacionTiroOblicuo(
     /** Altura máxima alcanzada hasta el instante actual de la simulación (m). */
     private var alturaMaximaRecorrida: Double = 0.0
 
-    /** Historial de coordenadas X (en metros) para trazar la estela blanca de la trayectoria. */
+    /** Historial de coordenadas X (en metros) para trazar la estela blanca. */
     private val estelaX = mutableListOf<Double>()
 
-    /** Historial de coordenadas Y (en metros) para trazar la estela blanca de la trayectoria. */
+    /** Historial de coordenadas Y (en metros) para trazar la estela blanca. */
     private val estelaY = mutableListOf<Double>()
 
     /** Límite visible del eje X en metros (múltiplo exacto de 10m). */
@@ -78,16 +75,8 @@ class CanvasSimulacionTiroOblicuo(
     /** Límite visible del eje Y en metros (múltiplo exacto de 10m). */
     private var maxEscalaY: Double = 60.0
 
-    /** Factor de conversión horizontal en píxeles por metro (Auto-Zoom). */
-    private var pixelesPorMetroX: Double = 1.0
-
-    /** Factor de conversión vertical en píxeles por metro (Auto-Zoom). */
-    private var pixelesPorMetroY: Double = 1.0
-
     /**
      * Vincula el tamaño del Canvas al contenedor y redibuja automáticamente al cambiar dimensiones.
-     *
-     * @param contenedor panel contenedor del Canvas.
      */
     fun vincularTamano(contenedor: Pane) {
         canvas.widthProperty().bind(contenedor.widthProperty())
@@ -97,102 +86,41 @@ class CanvasSimulacionTiroOblicuo(
     }
 
     /**
-     * Configura los parámetros e inicia la simulación animada desde el origen (0, 0) haciendo que
-     * la velocidad visual de la pelota sea directamente proporcional al valor de v₀ ingresado
-     * (ej. lenta con v₀ = 10 m/s y rápida con v₀ = 100 m/s), respetando las coordenadas objetivo (x_f, y_f).
+     * Configura los parámetros e inicia la simulación animada desde el origen (0, 0) con velocidad
+     * visual directamente proporcional a v₀.
      */
     fun simular(v0: Double, gravedad: Double, xf: Double, yf: Double, anguloGrados: Double) {
         detener()
-        gravedadActual = if (gravedad > 0.0) gravedad else 9.8
-        val xfDeseada = max(0.0, xf)
-        val yfDeseada = max(0.0, yf)
-
-        anguloActual = if (xfDeseada > 0.0 && yfDeseada > 0.0 && v0 <= 0.0) {
-            calculador.calcularAnguloParaPicoYAlcance(xfDeseada, yfDeseada, anguloGrados)
-        } else {
-            anguloGrados.coerceIn(5.0, 85.0)
-        }
-
-        v0Actual = calculador.calcularVelocidadInicialRequerida(
-            v0,
-            xfDeseada,
-            yfDeseada,
-            anguloActual,
-            gravedadActual
-        )
-
-        alcanceTotalX = if (xfDeseada > 0.0) {
-            xfDeseada
-        } else {
-            max(1.0, calculador.calcularAlcanceHorizontal(0.0, v0Actual, anguloActual, gravedadActual))
-        }
-
-        alturaPicoY = if (yfDeseada > 0.0) {
-            yfDeseada
-        } else {
-            max(1.0, calculador.calcularAlturaMaxima(0.0, v0Actual, anguloActual, gravedadActual))
-        }
-
-        tiempoVueloTotal = calculador.calcularTiempoVueloConVelocidad(
-            v0Actual,
-            alcanceTotalX,
-            anguloActual,
-            gravedadActual
-        )
-
-        // El tiro comienza siempre desde el origen cartesiano (0, 0)
-        tiempoActual = 0.0
-        pelotaX = 0.0
-        pelotaY = 0.0
-        alturaMaximaRecorrida = 0.0
-
-        estelaX.clear()
-        estelaY.clear()
-        estelaX.add(pelotaX)
-        estelaY.add(pelotaY)
-
+        configurarParametrosFisicos(v0, gravedad, max(0.0, xf), max(0.0, yf), anguloGrados)
+        reiniciarEstadoEnOrigen()
         ajustarEscalaZoom10m()
         onActualizarEstado?.invoke(pelotaX, pelotaY, alturaMaximaRecorrida, tiempoActual)
         renderizar()
 
-        if (tiempoVueloTotal <= 0.0) {
-            return
-        }
+        if (tiempoVueloTotal <= 0.0) return
 
-        // La duración en pantalla es inversamente proporcional a v₀ (velocidad visual proporcional a v₀)
         val duracionVisualSegundos = calculador.calcularDuracionVisualSegundos(v0Actual)
-        val cuadrosTotales = max(6.0, duracionVisualSegundos * 40.0)
-        val pasoTiempoFisico = tiempoVueloTotal / cuadrosTotales
+        val pasoTiempoFisico = tiempoVueloTotal / max(6.0, duracionVisualSegundos * 40.0)
 
-        timeline = Timeline(
-            KeyFrame(Duration.millis(25.0), {
-                avanzarPaso(pasoTiempoFisico)
-            })
-        ).apply {
+        timeline = Timeline(KeyFrame(Duration.millis(25.0), { avanzarPaso(pasoTiempoFisico) })).apply {
             cycleCount = Timeline.INDEFINITE
             play()
         }
     }
 
     /**
-     * Detiene la simulación, borra la estela, devuelve la pelota al origen (0, 0)
-     * y restaura la grilla base de 10m en 10m.
+     * Detiene la simulación, borra la estela y devuelve la pelota al origen (0, 0).
      */
     fun restablecer() {
         detener()
-        tiempoActual = 0.0
         tiempoVueloTotal = 0.0
-        pelotaX = 0.0
-        pelotaY = 0.0
-        alturaMaximaRecorrida = 0.0
         alcanceTotalX = 0.0
         alturaPicoY = 0.0
-        estelaX.clear()
-        estelaY.clear()
-
         maxEscalaX = 100.0
         maxEscalaY = 60.0
-
+        reiniciarEstadoEnOrigen()
+        estelaX.clear()
+        estelaY.clear()
         onActualizarEstado?.invoke(0.0, 0.0, 0.0, 0.0)
         renderizar()
     }
@@ -206,63 +134,7 @@ class CanvasSimulacionTiroOblicuo(
     }
 
     /**
-     * Avanza el tiempo simulado en Δt sincronizado con v₀, trazando la parábola que sube por
-     * el pico y_f y desciende hasta tocar tierra (y = 0) en x_f.
-     */
-    private fun avanzarPaso(dt: Double) {
-        val mitadVuelo = tiempoVueloTotal * 0.5
-        val siguienteTiempo = if (tiempoActual < mitadVuelo && tiempoActual + dt > mitadVuelo) {
-            mitadVuelo
-        } else {
-            min(tiempoActual + dt, tiempoVueloTotal)
-        }
-        tiempoActual = siguienteTiempo
-
-        val progreso = if (tiempoVueloTotal > 0.0) {
-            (tiempoActual / tiempoVueloTotal).coerceIn(0.0, 1.0)
-        } else {
-            1.0
-        }
-
-        val xCalc = alcanceTotalX * progreso
-        val yCalc = calculador.calcularYParabolaCompleta(alturaPicoY, progreso)
-
-        if (tiempoActual >= tiempoVueloTotal || progreso >= 1.0) {
-            tiempoActual = tiempoVueloTotal
-            pelotaX = alcanceTotalX
-            pelotaY = 0.0
-            alturaMaximaRecorrida = max(alturaMaximaRecorrida, alturaPicoY)
-            estelaX.add(pelotaX)
-            estelaY.add(pelotaY)
-            detener()
-        } else {
-            pelotaX = xCalc
-            pelotaY = yCalc
-            alturaMaximaRecorrida = max(alturaMaximaRecorrida, pelotaY)
-            estelaX.add(pelotaX)
-            estelaY.add(pelotaY)
-        }
-
-        onActualizarEstado?.invoke(pelotaX, pelotaY, alturaMaximaRecorrida, tiempoActual)
-        renderizar()
-    }
-
-    /**
-     * Ajusta el rango máximo de los ejes en múltiplos exactos de 10 metros para que toda la
-     * parábola (su pico y_f y su caída en x_f) entre dentro del área visible del Canvas.
-     */
-    private fun ajustarEscalaZoom10m() {
-        val maxRequeridoX = max(10.0, alcanceTotalX)
-        val maxRequeridoY = max(10.0, alturaPicoY)
-
-        // Redondear hacia arriba al siguiente múltiplo de 10m con margen visual del 15-20%
-        maxEscalaX = max(50.0, ceil((maxRequeridoX * 1.15) / 10.0) * 10.0)
-        maxEscalaY = max(40.0, ceil((maxRequeridoY * 1.20) / 10.0) * 10.0)
-    }
-
-    /**
-     * Dibuja el fondo negro, la grilla y ejes cartesianos (X azul, Y rojo) con marcas cada 10 metros,
-     * la trayectoria blanca y la pelota blanca en su posición física actual.
+     * Dibuja el plano cartesiano negro, los ejes graduados de 10m en 10m y la pelota blanca.
      */
     fun renderizar() {
         val gc = canvas.graphicsContext2D
@@ -270,134 +142,93 @@ class CanvasSimulacionTiroOblicuo(
         val h = canvas.height
         if (w <= 0.0 || h <= 0.0) return
 
-        // 1. Fondo completamente negro (Color.BLACK)
         gc.fill = Color.BLACK
         gc.fillRect(0.0, 0.0, w, h)
 
-        val margenIzq = 50.0
-        val margenDer = 24.0
-        val margenSup = 24.0
-        val margenInf = 42.0
+        val origenX = 50.0
+        val origenY = h - 42.0
+        val anchoUtil = max(50.0, w - origenX - 24.0)
+        val altoUtil = max(50.0, origenY - 24.0)
+        val pixelesPorMetroX = anchoUtil / max(10.0, maxEscalaX)
+        val pixelesPorMetroY = altoUtil / max(10.0, maxEscalaY)
 
-        val anchoUtil = max(50.0, w - margenIzq - margenDer)
-        val altoUtil = max(50.0, h - margenSup - margenInf)
-        val origenX = margenIzq
-        val origenY = h - margenInf
-
-        // Conversión dinámica metros-a-píxeles (Auto-Ajuste de Zoom)
-        pixelesPorMetroX = anchoUtil / max(10.0, maxEscalaX)
-        pixelesPorMetroY = altoUtil / max(10.0, maxEscalaY)
-
-        // 2. Grilla y Ejes Cartesianos graduados de 10m en 10m (X azul, Y rojo)
-        dibujarEjesYGrilla10m(gc, origenX, origenY, anchoUtil, altoUtil)
-
-        // 3. Estela blanca continua/punteada a medida que la pelota avanza desde (0, 0)
-        if (estelaX.size > 1) {
-            gc.save()
-            gc.stroke = Color.WHITE
-            gc.lineWidth = 2.0
-            gc.setLineDashes(5.0, 4.0)
-            for (i in 0 until estelaX.size - 1) {
-                val px1 = origenX + estelaX[i] * pixelesPorMetroX
-                val py1 = origenY - estelaY[i] * pixelesPorMetroY
-                val px2 = origenX + estelaX[i + 1] * pixelesPorMetroX
-                val py2 = origenY - estelaY[i + 1] * pixelesPorMetroY
-                gc.strokeLine(px1, py1, px2, py2)
-            }
-            gc.restore()
-        }
-
-        // 4. Pelota de color blanco (Color.WHITE) en su coordenada exacta (x(t), y(t))
-        val radioPelota = 6.0
-        val pelotaPantallaX = origenX + pelotaX * pixelesPorMetroX
-        val pelotaPantallaY = origenY - pelotaY * pixelesPorMetroY
-
-        gc.fill = Color.WHITE
-        gc.fillOval(
-            pelotaPantallaX - radioPelota,
-            pelotaPantallaY - radioPelota,
-            radioPelota * 2.0,
-            radioPelota * 2.0
+        renderizadorPlano.dibujarEjesYGrilla10m(
+            gc, origenX, origenY, anchoUtil, altoUtil,
+            maxEscalaX, maxEscalaY, pixelesPorMetroX, pixelesPorMetroY
+        )
+        renderizadorPlano.dibujarTrayectoriaYPelota(
+            gc, origenX, origenY, pixelesPorMetroX, pixelesPorMetroY,
+            estelaX, estelaY, pelotaX, pelotaY
         )
     }
 
-    /**
-     * Dibuja el eje horizontal X en azul (Color.BLUE), el eje vertical Y en rojo (Color.RED),
-     * la grilla de referencia y las marcas de escala incrementando exactamente de 10m en 10m
-     * (10m, 20m, 30m, 40m, ...).
-     */
-    private fun dibujarEjesYGrilla10m(
-        gc: GraphicsContext,
-        origenX: Double,
-        origenY: Double,
-        anchoUtil: Double,
-        altoUtil: Double
+    private fun configurarParametrosFisicos(
+        v0: Double,
+        gravedad: Double,
+        xfDeseada: Double,
+        yfDeseada: Double,
+        anguloGrados: Double
     ) {
-        gc.font = Font.font("System", FontWeight.BOLD, 9.5)
-
-        val limiteMetrosX = maxEscalaX.toInt()
-        val limiteMetrosY = maxEscalaY.toInt()
-
-        // Líneas de grilla cada 10 metros
-        gc.stroke = Color.web("#181818")
-        gc.lineWidth = 1.0
-        var mGridX = 10
-        while (mGridX <= limiteMetrosX) {
-            val px = origenX + mGridX * pixelesPorMetroX
-            gc.strokeLine(px, origenY, px, origenY - altoUtil)
-            mGridX += 10
+        gravedadActual = if (gravedad > 0.0) gravedad else 9.8
+        anguloActual = if (xfDeseada > 0.0 && yfDeseada > 0.0 && v0 <= 0.0) {
+            calculador.calcularAnguloParaPicoYAlcance(xfDeseada, yfDeseada, anguloGrados)
+        } else {
+            anguloGrados.coerceIn(5.0, 85.0)
         }
-        var mGridY = 10
-        while (mGridY <= limiteMetrosY) {
-            val py = origenY - mGridY * pixelesPorMetroY
-            gc.strokeLine(origenX, py, origenX + anchoUtil, py)
-            mGridY += 10
+        v0Actual = calculador.calcularVelocidadInicialRequerida(v0, xfDeseada, yfDeseada, anguloActual, gravedadActual)
+        alcanceTotalX = if (xfDeseada > 0.0) {
+            xfDeseada
+        } else {
+            max(1.0, calculador.calcularAlcanceHorizontal(0.0, v0Actual, anguloActual, gravedadActual))
+        }
+        alturaPicoY = if (yfDeseada > 0.0) {
+            yfDeseada
+        } else {
+            max(1.0, calculador.calcularAlturaMaxima(0.0, v0Actual, anguloActual, gravedadActual))
+        }
+        tiempoVueloTotal = calculador.calcularTiempoVueloConVelocidad(v0Actual, alcanceTotalX, anguloActual, gravedadActual)
+    }
+
+    private fun reiniciarEstadoEnOrigen() {
+        tiempoActual = 0.0
+        pelotaX = 0.0
+        pelotaY = 0.0
+        alturaMaximaRecorrida = 0.0
+        estelaX.clear()
+        estelaY.clear()
+        estelaX.add(0.0)
+        estelaY.add(0.0)
+    }
+
+    private fun avanzarPaso(dt: Double) {
+        val mitadVuelo = tiempoVueloTotal * 0.5
+        tiempoActual = if (tiempoActual < mitadVuelo && tiempoActual + dt > mitadVuelo) {
+            mitadVuelo
+        } else {
+            min(tiempoActual + dt, tiempoVueloTotal)
         }
 
-        // Eje horizontal X en color azul (Color.BLUE)
-        gc.stroke = Color.BLUE
-        gc.lineWidth = 2.5
-        gc.strokeLine(origenX, origenY, origenX + anchoUtil, origenY)
-
-        var ultimoTextoX = -100.0
-        var mX = 10
-        while (mX <= limiteMetrosX) {
-            val px = origenX + mX * pixelesPorMetroX
-            gc.stroke = Color.BLUE
-            gc.lineWidth = 1.6
-            gc.strokeLine(px, origenY - 4.0, px, origenY + 4.0)
-
-            if (px - ultimoTextoX >= 25.0) {
-                gc.fill = Color.LIGHTBLUE
-                gc.fillText("${mX}m", px - 11.0, origenY + 16.0)
-                ultimoTextoX = px
-            }
-            mX += 10
+        val progreso = if (tiempoVueloTotal > 0.0) (tiempoActual / tiempoVueloTotal).coerceIn(0.0, 1.0) else 1.0
+        if (tiempoActual >= tiempoVueloTotal || progreso >= 1.0) {
+            tiempoActual = tiempoVueloTotal
+            pelotaX = alcanceTotalX
+            pelotaY = 0.0
+            alturaMaximaRecorrida = max(alturaMaximaRecorrida, alturaPicoY)
+            detener()
+        } else {
+            pelotaX = alcanceTotalX * progreso
+            pelotaY = calculador.calcularYParabolaCompleta(alturaPicoY, progreso)
+            alturaMaximaRecorrida = max(alturaMaximaRecorrida, pelotaY)
         }
-        gc.fill = Color.BLUE
-        gc.fillText("X (m)", origenX + anchoUtil - 26.0, origenY + 31.0)
 
-        // Eje vertical Y en color rojo (Color.RED)
-        gc.stroke = Color.RED
-        gc.lineWidth = 2.5
-        gc.strokeLine(origenX, origenY, origenX, origenY - altoUtil)
+        estelaX.add(pelotaX)
+        estelaY.add(pelotaY)
+        onActualizarEstado?.invoke(pelotaX, pelotaY, alturaMaximaRecorrida, tiempoActual)
+        renderizar()
+    }
 
-        var ultimoTextoY = origenY + 100.0
-        var mY = 10
-        while (mY <= limiteMetrosY) {
-            val py = origenY - mY * pixelesPorMetroY
-            gc.stroke = Color.RED
-            gc.lineWidth = 1.6
-            gc.strokeLine(origenX - 4.0, py, origenX + 4.0, py)
-
-            if (ultimoTextoY - py >= 13.0) {
-                gc.fill = Color.SALMON
-                gc.fillText("${mY}m", 4.0, py + 3.5)
-                ultimoTextoY = py
-            }
-            mY += 10
-        }
-        gc.fill = Color.RED
-        gc.fillText("Y (m)", 8.0, origenY - altoUtil - 6.0)
+    private fun ajustarEscalaZoom10m() {
+        maxEscalaX = max(50.0, ceil((max(10.0, alcanceTotalX) * 1.15) / 10.0) * 10.0)
+        maxEscalaY = max(40.0, ceil((max(10.0, alturaPicoY) * 1.20) / 10.0) * 10.0)
     }
 }

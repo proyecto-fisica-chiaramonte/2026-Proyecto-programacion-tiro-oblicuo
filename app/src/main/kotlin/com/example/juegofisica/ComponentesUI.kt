@@ -2,6 +2,7 @@ package com.example.juegofisica
 
 import javafx.geometry.Insets
 import javafx.geometry.Pos
+import javafx.scene.Node
 import javafx.scene.control.Button
 import javafx.scene.control.Label
 import javafx.scene.image.Image
@@ -15,19 +16,15 @@ import javafx.scene.text.FontWeight
 import javafx.scene.text.TextAlignment
 
 /**
- * Fábrica y proveedor de componentes visuales compartidos de la interfaz de usuario.
+ * Fábrica y proveedor de componentes visuales compartidos de la interfaz de usuario (DRY / SRP).
  *
- * Centraliza la creación y estilos de elementos comunes como fondos responsivos,
- * botones con hover estándar y paneles de datos para evitar duplicación de código (DRY).
+ * Centraliza la creación y estilos de elementos comunes como botones interactivos con hover,
+ * paneles de datos físicos y el ensamblaje de las pantallas de juego MRUV.
  */
 class ComponentesUI {
 
     /**
      * Crea un ImageView responsivo vinculado al tamaño del contenedor raíz StackPane.
-     *
-     * @param rutaRecurso ruta absoluta al archivo de imagen en resources.
-     * @param root contenedor StackPane del cual se vincularán las dimensiones.
-     * @return ImageView configurado y vinculado.
      */
     fun crearFondoResponsive(rutaRecurso: String, root: StackPane): ImageView {
         val imagenFondo = Image(javaClass.getResource(rutaRecurso).toExternalForm())
@@ -39,62 +36,53 @@ class ComponentesUI {
     }
 
     /**
+     * Crea un botón estilizado con efecto hover reutilizable para eliminar duplicación en las vistas.
+     */
+    fun crearBotonConHover(
+        texto: String,
+        estiloNormal: String,
+        estiloHover: String,
+        tamanoFuente: Double = 14.0,
+        pesoFuente: FontWeight = FontWeight.BOLD,
+        anchoPreferido: Double = 0.0,
+        onAccion: () -> Unit
+    ): Button {
+        return Button(texto).apply {
+            font = Font.font("System", pesoFuente, tamanoFuente)
+            if (anchoPreferido > 0.0) {
+                prefWidth = anchoPreferido
+            }
+            style = estiloNormal
+            onMouseEntered = { style = estiloHover }
+            onMouseExited = { style = estiloNormal }
+            setOnAction { onAccion() }
+        }
+    }
+
+    /**
      * Construye el botón estándar "Volver al Menú" con sus efectos de hover y acción asignada.
-     *
-     * @param onVolver acción a ejecutar al presionar el botón.
-     * @return instancia de Button con estilo estándar.
      */
     fun crearBotonVolver(onVolver: () -> Unit): Button {
-        return Button("Volver al Menú").apply {
-            font = Font.font("System", FontWeight.NORMAL, 14.0)
-            style = "-fx-background-color: #333333; -fx-text-fill: white; " +
-                    "-fx-border-color: #666666; -fx-border-radius: 5; " +
-                    "-fx-background-radius: 5; -fx-padding: 8 16;"
-            onMouseEntered = {
-                style = "-fx-background-color: #444444; -fx-text-fill: white; " +
-                        "-fx-border-color: #888888; -fx-border-radius: 5; " +
-                        "-fx-background-radius: 5; -fx-padding: 8 16;"
-            }
-            onMouseExited = {
-                style = "-fx-background-color: #333333; -fx-text-fill: white; " +
-                        "-fx-border-color: #666666; -fx-border-radius: 5; " +
-                        "-fx-background-radius: 5; -fx-padding: 8 16;"
-            }
-            setOnAction { onVolver() }
-        }
+        val normal = "-fx-background-color: #333333; -fx-text-fill: white; " +
+                "-fx-border-color: #666666; -fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 8 16;"
+        val hover = "-fx-background-color: #444444; -fx-text-fill: white; " +
+                "-fx-border-color: #888888; -fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 8 16;"
+        return crearBotonConHover("Volver al Menú", normal, hover, 14.0, FontWeight.NORMAL, 0.0, onVolver)
     }
 
     /**
      * Construye el botón estándar "REGLAS" con acento dorado y efecto hover.
-     *
-     * @param onMostrarReglas acción a ejecutar para mostrar el cuadro de reglas.
-     * @return instancia de Button configurada.
      */
     fun crearBotonReglas(onMostrarReglas: () -> Unit): Button {
-        return Button("REGLAS").apply {
-            font = Font.font("System", FontWeight.BOLD, 14.0)
-            style = "-fx-background-color: #1a1a1a; -fx-text-fill: #FFD700; " +
-                    "-fx-border-color: #FFD700; -fx-border-radius: 5; " +
-                    "-fx-background-radius: 5; -fx-padding: 8 16;"
-            onMouseEntered = {
-                style = "-fx-background-color: #2a2a00; -fx-text-fill: #FFD700; " +
-                        "-fx-border-color: #FFAA00; -fx-border-radius: 5; " +
-                        "-fx-background-radius: 5; -fx-padding: 8 16;"
-            }
-            onMouseExited = {
-                style = "-fx-background-color: #1a1a1a; -fx-text-fill: #FFD700; " +
-                        "-fx-border-color: #FFD700; -fx-border-radius: 5; " +
-                        "-fx-background-radius: 5; -fx-padding: 8 16;"
-            }
-            setOnAction { onMostrarReglas() }
-        }
+        val normal = "-fx-background-color: #1a1a1a; -fx-text-fill: #FFD700; " +
+                "-fx-border-color: #FFD700; -fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 8 16;"
+        val hover = "-fx-background-color: #2a2a00; -fx-text-fill: #FFD700; " +
+                "-fx-border-color: #FFAA00; -fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 8 16;"
+        return crearBotonConHover("REGLAS", normal, hover, 14.0, FontWeight.BOLD, 0.0, onMostrarReglas)
     }
 
     /**
      * Crea una etiqueta formateada en tipografía dorada para mostrar variables físicas.
-     *
-     * @param texto contenido textual de la variable y su valor.
-     * @return Label con el estilo consistente.
      */
     fun crearEtiquetaDato(texto: String): Label {
         return Label(texto).apply {
@@ -105,28 +93,20 @@ class ComponentesUI {
 
     /**
      * Crea un panel contenedor translúcido alineado a la derecha con borde dorado para agrupar datos.
-     *
-     * @param etiquetas etiquetas a añadir dentro del panel.
-     * @return VBox contenedor de datos estilizado.
      */
     fun crearPanelDatos(vararg etiquetas: Label): VBox {
         return VBox(4.0).apply {
             alignment = Pos.TOP_RIGHT
             padding = Insets(8.0, 10.0, 8.0, 10.0)
             maxWidth = Region.USE_PREF_SIZE
-            style = "-fx-background-color: rgba(0, 0, 0, 0.75); " +
-                    "-fx-border-color: #FFD700; " +
-                    "-fx-border-width: 1; " +
-                    "-fx-border-radius: 8; " +
-                    "-fx-background-radius: 8;"
+            style = "-fx-background-color: rgba(0, 0, 0, 0.75); -fx-border-color: #FFD700; " +
+                    "-fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8;"
             children.addAll(*etiquetas)
         }
     }
 
     /**
      * Crea el contenedor destacado superior con el mensaje de atención para las pantallas de juego MRUV.
-     *
-     * @return Label estilizado con ajuste automático de línea y fondo semitransparente.
      */
     fun crearCartelAtencion(): Label {
         val mensaje = "ATENCION: Este juego consiste en hacer la cuenta matematica correspondiente " +
@@ -141,11 +121,53 @@ class ComponentesUI {
             textFill = Color.web("#FFD700")
             textAlignment = TextAlignment.CENTER
             alignment = Pos.CENTER
-            style = "-fx-background-color: rgba(0, 0, 0, 0.82); " +
-                    "-fx-border-color: #FFD700; " +
-                    "-fx-border-width: 1.5; " +
-                    "-fx-border-radius: 8; " +
-                    "-fx-background-radius: 8;"
+            style = "-fx-background-color: rgba(0, 0, 0, 0.82); -fx-border-color: #FFD700; " +
+                    "-fx-border-width: 1.5; -fx-border-radius: 8; -fx-background-radius: 8;"
         }
+    }
+
+    /**
+     * Crea la etiqueta del contador de tiempo para las partidas de MRUV.
+     */
+    fun crearEtiquetaTemporizador(textoInicial: String = "01:00"): Label {
+        return Label(textoInicial).apply {
+            font = Font.font("System", FontWeight.BOLD, 22.0)
+            textFill = Color.web("#FFD700")
+        }
+    }
+
+    /**
+     * Ensambla y posiciona las capas comunes de una partida MRUV dentro del StackPane raíz (DRY).
+     */
+    fun ensamblarCapasJuegoMRUV(
+        root: StackPane,
+        lienzo: Node,
+        zonaIzquierda: VBox,
+        zonaDerecha: VBox,
+        lblContador: Label,
+        cuadroReglas: Node,
+        overlayDerrota: Node
+    ) {
+        val cartelAtencion = crearCartelAtencion()
+        root.children.addAll(
+            lienzo,
+            cartelAtencion,
+            zonaIzquierda,
+            zonaDerecha,
+            lblContador,
+            cuadroReglas,
+            overlayDerrota
+        )
+
+        StackPane.setAlignment(cartelAtencion, Pos.TOP_CENTER)
+        StackPane.setMargin(cartelAtencion, Insets(12.0, 0.0, 0.0, 0.0))
+        StackPane.setAlignment(zonaIzquierda, Pos.TOP_LEFT)
+        StackPane.setMargin(zonaIzquierda, Insets(15.0))
+        StackPane.setAlignment(zonaDerecha, Pos.TOP_RIGHT)
+        StackPane.setMargin(zonaDerecha, Insets(15.0))
+        StackPane.setAlignment(lblContador, Pos.BOTTOM_LEFT)
+        StackPane.setMargin(lblContador, Insets(15.0))
+        StackPane.setAlignment(cuadroReglas, Pos.CENTER)
+        StackPane.setAlignment(overlayDerrota, Pos.CENTER)
     }
 }
