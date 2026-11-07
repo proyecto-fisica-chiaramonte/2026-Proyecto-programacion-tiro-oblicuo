@@ -297,15 +297,15 @@ xychart-beta
 | 2026-10-23 | No | sin actividad | 0 / 0 |
 | 2026-10-26 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 1 / 0 |
 
-#### Aportes fuera del calendario de clases
+#### Aportes fuera del calendario de clases — bchiaramonte-ux
 
-**3 fechas fuera del calendario** · 8 commits · 9 merges
+**bchiaramonte-ux — 3 fechas fuera del calendario** · 8 commits · 9 merges
 
-| Fecha | Repositorios | Commits / merges |
-|---|---|--:|
-| 2026-10-30 | 2026-Proyecto-programacion-tiro-oblicuo | 3 / 4 |
-| 2026-11-02 | 2026-Proyecto-programacion-tiro-oblicuo | 2 / 2 |
-| 2026-11-06 | 2026-Proyecto-programacion-tiro-oblicuo | 3 / 3 |
+| Alumno | Fecha | Repositorios | Commits / merges |
+|---|---|---|---|
+| bchiaramonte-ux (`bchiaramonte-ux`) | 2026-10-30 | 2026-Proyecto-programacion-tiro-oblicuo | 3 / 4 |
+| bchiaramonte-ux (`bchiaramonte-ux`) | 2026-11-02 | 2026-Proyecto-programacion-tiro-oblicuo | 2 / 2 |
+| bchiaramonte-ux (`bchiaramonte-ux`) | 2026-11-06 | 2026-Proyecto-programacion-tiro-oblicuo | 3 / 3 |
 
 <!-- actividad-clases:fin -->
 
