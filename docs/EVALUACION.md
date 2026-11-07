@@ -265,7 +265,9 @@ xychart-beta
 
 > Período **2026-08-14 → 2026-10-29** · **17 clases** (lunes, viernes) · calendario oficial de la materia.
 >
-> `Commits` = commits de trabajo (no-merge); `Merges` = merges de PR (también son push). Los días sin actividad dicen **sin actividad**. Se usan las fechas de clase del calendario oficial; los días fuera del calendario no se incluyen.
+> `Commits` = commits de trabajo (no-merge); `Merges` = merges de PR (también son push). Los días sin actividad dicen **sin actividad**. El cuadro principal usa sólo las fechas de clase del calendario oficial.
+>
+> **Aportes fuera del calendario:** cada alumno tiene un cuadro aparte con las fechas no lectivas con actividad, desde **2026-08-14** hasta **2026-11-06** (ventana de aportes). Esas fechas no forman parte del cuadro principal, pero se muestran para no perder trabajo hecho en fines de semana, feriados o después del período.
 >
 > Se recorre `git log --all` sobre un mirror (todas las ramas y `refs/pull/*`), con deduplicación por commit. Fecha = fecha de autor en UTC-3. Los commits locales no pusheados no se ven. Si el trabajo fue en pareja y el commit es de otra persona, figura a nombre del autor del commit; para reflejarlo, usar `Co-authored-by` o una nota manual.
 >
@@ -294,6 +296,16 @@ xychart-beta
 | 2026-10-19 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 2 / 1 |
 | 2026-10-23 | No | sin actividad | 0 / 0 |
 | 2026-10-26 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 1 / 0 |
+
+#### Aportes fuera del calendario de clases
+
+**3 fechas fuera del calendario** · 8 commits · 9 merges
+
+| Fecha | Repositorios | Commits / merges |
+|---|---|--:|
+| 2026-10-30 | 2026-Proyecto-programacion-tiro-oblicuo | 3 / 4 |
+| 2026-11-02 | 2026-Proyecto-programacion-tiro-oblicuo | 2 / 2 |
+| 2026-11-06 | 2026-Proyecto-programacion-tiro-oblicuo | 3 / 3 |
 
 <!-- actividad-clases:fin -->
 
