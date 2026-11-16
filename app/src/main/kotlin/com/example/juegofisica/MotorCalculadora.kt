@@ -3,11 +3,7 @@ package com.example.juegofisica
 import kotlin.math.sqrt
 
 /**
- * Motor de lógica y cálculo aritmético para la calculadora.
- *
- * Implementa [ICalculadora] aplicando el Principio de Responsabilidad Única (SRP),
- * gestionando el estado numérico, operadores pendientes, cálculos binarios,
- * raíces cuadradas y formateo de resultados sin dependencias de la interfaz de usuario.
+ * Motor de lógica y cálculo aritmético para la calculadora (SRP / DIP).
  */
 class MotorCalculadora : ICalculadora {
 
@@ -27,11 +23,9 @@ class MotorCalculadora : ICalculadora {
         get() = textoDisplay
 
     override fun ingresarDigito(digito: String): String {
-        if (iniciarNumeroNuevo || textoDisplay == "Error") {
+        if (iniciarNumeroNuevo || textoDisplay == "Error" || textoDisplay == "0") {
             textoDisplay = digito
             iniciarNumeroNuevo = false
-        } else if (textoDisplay == "0") {
-            textoDisplay = digito
         } else {
             textoDisplay += digito
         }
@@ -49,10 +43,7 @@ class MotorCalculadora : ICalculadora {
     }
 
     override fun establecerOperador(operador: String): String {
-        if (textoDisplay == "Error") {
-            limpiar()
-            return textoDisplay
-        }
+        if (textoDisplay == "Error") return limpiar()
         val valorActual = textoDisplay.toDoubleOrNull() ?: return textoDisplay
         if (operandoAnterior != null && operadorPendiente != null && !iniciarNumeroNuevo) {
             calcularResultado()
@@ -66,37 +57,21 @@ class MotorCalculadora : ICalculadora {
 
     override fun aplicarRaiz(): String {
         val valor = textoDisplay.toDoubleOrNull()
-        if (valor == null || valor < 0.0) {
-            return mostrarError()
-        }
-        textoDisplay = formatearNumero(sqrt(valor))
+        if (valor == null || valor < 0.0) return mostrarError()
         iniciarNumeroNuevo = true
-        return textoDisplay
+        return actualizarConNumero(sqrt(valor))
     }
 
     override fun calcularResultado(): String {
-        val operador = operadorPendiente ?: return textoDisplay
-        val izquierdo = operandoAnterior ?: return textoDisplay
-        val derecho = textoDisplay.toDoubleOrNull() ?: return textoDisplay
-
-        val resultado = when (operador) {
-            "+" -> izquierdo + derecho
-            "-" -> izquierdo - derecho
-            "*" -> izquierdo * derecho
-            "/" -> {
-                if (derecho == 0.0) {
-                    return mostrarError()
-                }
-                izquierdo / derecho
-            }
-            else -> return textoDisplay
-        }
-
-        textoDisplay = formatearNumero(resultado)
+        val op = operadorPendiente ?: return textoDisplay
+        val izq = operandoAnterior ?: return textoDisplay
+        val der = textoDisplay.toDoubleOrNull() ?: return textoDisplay
+        if (op == "/" && der == 0.0) return mostrarError()
+        val res = when (op) { "+" -> izq + der; "-" -> izq - der; "*" -> izq * der; "/" -> izq / der; else -> return textoDisplay }
         operandoAnterior = null
         operadorPendiente = null
         iniciarNumeroNuevo = true
-        return textoDisplay
+        return actualizarConNumero(res)
     }
 
     override fun limpiar(): String {
@@ -107,25 +82,18 @@ class MotorCalculadora : ICalculadora {
         return textoDisplay
     }
 
-    /**
-     * Establece el estado de error y limpia los operandos pendientes.
-     */
     private fun mostrarError(): String {
+        limpiar()
         textoDisplay = "Error"
-        operandoAnterior = null
-        operadorPendiente = null
-        iniciarNumeroNuevo = true
         return textoDisplay
     }
 
-    /**
-     * Formatea un número double evitando decimales innecesarios cuando es entero.
-     */
-    private fun formatearNumero(valor: Double): String {
-        return if (valor % 1.0 == 0.0 && valor in -1_000_000_000.0..1_000_000_000.0) {
+    private fun actualizarConNumero(valor: Double): String {
+        textoDisplay = if (valor % 1.0 == 0.0 && valor in -1_000_000_000.0..1_000_000_000.0) {
             valor.toLong().toString()
         } else {
             String.format("%.6f", valor).trimEnd('0').trimEnd('.')
         }
+        return textoDisplay
     }
 }

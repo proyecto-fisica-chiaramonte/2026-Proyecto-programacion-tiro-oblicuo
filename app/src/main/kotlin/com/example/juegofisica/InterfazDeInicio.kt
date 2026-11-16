@@ -8,9 +8,7 @@ import javafx.scene.layout.VBox
 import javafx.stage.Stage
 
 /**
- * Pantalla de inicio del juego educativo de física.
- * Muestra el encabezado de bienvenida y el acceso al nivel MRUV.
- * Implementa la navegación cambiando la scene del primaryStage.
+ * Pantalla de inicio del juego educativo de física (SRP).
  */
 class InterfazDeInicio : Application() {
 
@@ -22,44 +20,27 @@ class InterfazDeInicio : Application() {
 
     override fun start(stage: Stage) {
         primaryStage = stage
-        // Crear y guardar la escena del menú
         menuScene = crearEscenaMenu()
         primaryStage.scene = menuScene
         primaryStage.title = "Juego Educativo de Física"
         primaryStage.show()
     }
 
-    /**
-     * Crea y devuelve la Scene del menú principal con el encabezado y el botón de inicio.
-     * Se reutiliza tanto al iniciar la app como al volver desde pantallas secundarias.
-     */
     private fun crearEscenaMenu(): Scene {
-        // Contenedor principal con espaciado y alineación centrada
-        val root = VBox(20.0).apply {
+        val botones = MenuButtonsSection(
+            onMRUV = { abrirPantalla(PantallaDificultadMRUV(primaryStage, menuScene), "Dificultad MRUV") },
+            onTiroOblicuo = { abrirPantalla(PantallaSimulacionTiroOblicuo(primaryStage, menuScene), "Simulación de Tiro Oblicuo") }
+        )
+        val root = VBox(20.0, HeaderSection().construir(), botones.construir()).apply {
             alignment = Pos.CENTER
             padding = Insets(20.0)
             styleClass.add("root-container")
         }
-
-        // Sección del encabezado con título y subtítulo
-        val headerSection = HeaderSection()
-        root.children.add(headerSection.construir())
-
-        // Sección de botones con navegación a MRUV y Simulación de Tiro Oblicuo
-        val menuButtonsSection = MenuButtonsSection(
-            onMRUV = {
-                val pantallaDificultad = PantallaDificultadMRUV(primaryStage, menuScene)
-                primaryStage.scene = pantallaDificultad.crearEscena()
-                primaryStage.title = "Dificultad MRUV"
-            },
-            onTiroOblicuo = {
-                val pantallaTiroOblicuo = PantallaSimulacionTiroOblicuo(primaryStage, menuScene)
-                primaryStage.scene = pantallaTiroOblicuo.crearEscena()
-                primaryStage.title = "Simulación de Tiro Oblicuo"
-            }
-        )
-        root.children.add(menuButtonsSection.construir())
-
         return Scene(root, 400.0, 300.0)
+    }
+
+    private fun abrirPantalla(pantalla: PantallaJuego, titulo: String) {
+        primaryStage.scene = pantalla.crearEscena()
+        primaryStage.title = titulo
     }
 }

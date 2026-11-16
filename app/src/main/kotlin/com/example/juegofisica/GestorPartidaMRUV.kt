@@ -6,10 +6,10 @@ import javafx.scene.paint.Color
 import javafx.stage.Stage
 
 /**
- * Controlador de estado y ciclo de vida de una partida de MRUV (Principio de Responsabilidad Única - SRP).
+ * Controlador de ciclo de vida, puntaje, temporizador y navegación para las partidas de MRUV (SRP).
  *
- * Encapsula la generación de variables físicas aleatorias, la sincronización del temporizador
- * de 60 segundos con [AnimacionEscenario] y las transiciones hacia el menú o la pantalla de victoria.
+ * Mantiene todos sus atributos estrictamente privados (`private`) y expone el estado únicamente
+ * a través de métodos con comportamiento de dominio.
  */
 class GestorPartidaMRUV(
     private val stage: Stage,
@@ -17,107 +17,58 @@ class GestorPartidaMRUV(
     private val esModoDificil: Boolean
 ) {
 
-    /** Duración máxima fija de la partida (60 segundos = 01:00). */
-    val tiempoInicialSegundos: Int = 60
-
-    /** Segundos restantes de la partida en curso. */
-    var tiempoRestanteSegundos: Int = 60
-        private set
-
-    /** Aceleración generada para el problema (m/s²). */
-    var aceleracion: Double = 0.0
-        private set
-
-    /** Distancia generada para el problema (m). */
-    var distancia: Double = 0.0
-        private set
-
-    /** Velocidad constante generada para el modo difícil (m/s). */
-    var velocidad: Double = 0.0
-        private set
-
-    /** Velocidad inicial generada para el problema (m/s). */
-    var velocidadInicial: Double = 0.0
-        private set
-
-    /** Posición inicial generada para el problema (m). */
-    var posicionInicial: Double = 0.0
-        private set
-
-    /** Valor teórico esperado de la respuesta (t en modo fácil, x(t) en modo difícil). */
-    var resultadoEsperado: Double = 0.0
-        private set
+    /** Estado numérico de la partida: [tiempoInicial, tiempoRestante, puntajeActual, finalizada(0/1)]. */
+    private val estadoPartida: IntArray = intArrayOf(60, 60, 0, 0)
 
     /** Temporizador activo de la partida. */
     private var temporizador: TemporizadorPartida? = null
 
-    /**
-     * Genera variables físicas aleatorias para el Modo Fácil donde t = √(2 · d / a) es entero.
-     */
-    fun generarDatosModoFacil(validador: ValidadorTiempoMRUV) {
-        val tiempoExacto = listOf(2, 3, 4, 5, 6).random()
-        val opcionesA = listOf(1, 2, 4).filter { a -> (a * tiempoExacto * tiempoExacto) % 2 == 0 }
-        val a = if (opcionesA.isNotEmpty()) opcionesA.random() else 2
-        aceleracion = a.toDouble()
-        distancia = (a * tiempoExacto * tiempoExacto / 2).toDouble()
-        velocidadInicial = (0..15).random().toDouble()
-        posicionInicial = (0..20).random().toDouble()
-        resultadoEsperado = validador.calcularTiempo(distancia, aceleracion)
-    }
+    /** Devuelve la duración inicial de la partida en segundos. */
+    fun obtenerTiempoInicial(): Int = estadoPartida[0]
+
+    /** Devuelve los segundos restantes de la cuenta regresiva actual. */
+    fun obtenerTiempoRestante(): Int = estadoPartida[1]
+
+    /** Devuelve el puntaje actual obtenido por el jugador. */
+    fun obtenerPuntajeActual(): Int = estadoPartida[2]
+
+    /** Indica si la partida actual ya se encuentra finalizada. */
+    fun estaFinalizada(): Boolean = estadoPartida[3] == 1
 
     /**
-     * Genera variables físicas aleatorias para el Modo Difícil donde t = d / v es entero.
+     * Registra un acierto del jugador, incrementa el puntaje y marca la partida como completada.
      */
-    fun generarDatosModoDificil(validador: IValidadorRespuesta) {
-        val v = (5..30).random()
-        val tiempoExacto = listOf(2, 3, 4, 5, 6, 8, 10).random()
-        velocidad = v.toDouble()
-        distancia = (v * tiempoExacto).toDouble()
-        aceleracion = (1..10).random().toDouble()
-        velocidadInicial = (0..20).random().toDouble()
-        posicionInicial = (0..50).random().toDouble()
-        resultadoEsperado = validador.calcularPosicionFinal(
-            posicionInicial = posicionInicial,
-            velocidadInicial = velocidadInicial,
-            aceleracion = aceleracion,
-            distancia = distancia,
-            velocidad = velocidad
-        )
+    fun registrarAcierto(animacionEscenario: AnimacionEscenario) {
+        if (estaFinalizada()) return
+        estadoPartida[3] = 1
+        estadoPartida[2] += if (esModoDificil) 200 else 100
+        detenerTodo(animacionEscenario)
     }
 
     /**
      * Inicia el temporizador de 60 segundos vinculándolo al progreso del tren y a la secuencia de impacto.
      */
-    fun iniciarTemporizador(
-        lblContador: Label,
-        animacionEscenario: AnimacionEscenario,
-        casillaRespuesta: CasillaRespuestaWidget,
-        pantallaDerrota: PantallaDerrotaMRUV
-    ) {
+    fun iniciarTemporizador(lblContador: Label, animacion: AnimacionEscenario, alAgotarTiempo: () -> Unit) {
+        estadoPartida[3] = 0
+        estadoPartida[1] = estadoPartida[0]
         val gestor = TemporizadorPartida(
-            onTick = { segundos, tiempoFormateado ->
-                tiempoRestanteSegundos = segundos
-                lblContador.text = tiempoFormateado
-                val progreso = (tiempoInicialSegundos - segundos).toDouble() / tiempoInicialSegundos.toDouble()
-                animacionEscenario.actualizarProgreso(progreso)
+            onTick = { segs, texto ->
+                estadoPartida[1] = segs
+                lblContador.text = texto
+                animacion.actualizarProgreso((estadoPartida[0] - segs).toDouble() / estadoPartida[0].toDouble())
             },
-            onFin = {
-                tiempoRestanteSegundos = 0
-                lblContador.text = "00:00"
-                lblContador.textFill = Color.web("#FF4444")
-                casillaRespuesta.deshabilitar()
-                animacionEscenario.ejecutarAnimacionImpacto { pantallaDerrota.mostrar() }
-            }
+            onFin = { procesarTiempoAgotado(lblContador, alAgotarTiempo) }
         )
         temporizador = gestor
-        lblContador.text = gestor.formatearTiempo(tiempoInicialSegundos)
-        gestor.iniciar(tiempoInicialSegundos)
+        lblContador.text = gestor.formatearTiempo(estadoPartida[0])
+        gestor.iniciar(estadoPartida[0])
     }
 
     /**
      * Detiene el temporizador y la animación activa.
      */
     fun detenerTodo(animacionEscenario: AnimacionEscenario) {
+        estadoPartida[0] = 60
         temporizador?.detener()
         animacionEscenario.detener()
     }
@@ -126,6 +77,7 @@ class GestorPartidaMRUV(
      * Detiene recursos y regresa al menú principal.
      */
     fun volverAlMenu(animacionEscenario: AnimacionEscenario) {
+        estadoPartida[3] = 1
         detenerTodo(animacionEscenario)
         stage.scene = menuScene
         stage.title = "Juego Educativo de Física"
@@ -135,10 +87,18 @@ class GestorPartidaMRUV(
      * Detiene el temporizador y la animación y muestra la pantalla de victoria con el tiempo empleado.
      */
     fun mostrarVictoria(animacionEscenario: AnimacionEscenario) {
-        val tiempoEmpleado = (tiempoInicialSegundos - tiempoRestanteSegundos).coerceIn(0, tiempoInicialSegundos)
-        detenerTodo(animacionEscenario)
-        val pantallaVictoria = PantallaVictoriaMRUV(stage, menuScene, tiempoEmpleado, esModoDificil)
+        registrarAcierto(animacionEscenario)
+        val tiempoEmpleado = (estadoPartida[0] - estadoPartida[1]).coerceIn(0, estadoPartida[0])
+        val pantallaVictoria = PantallaVictoriaMRUV(stage, menuScene, tiempoEmpleado).configurarModo(esModoDificil)
         stage.scene = pantallaVictoria.crearEscena()
         stage.title = "MRUV - ¡Victoria!"
+    }
+
+    private fun procesarTiempoAgotado(lblContador: Label, alAgotarTiempo: () -> Unit) {
+        estadoPartida[3] = 1
+        estadoPartida[1] = 0
+        lblContador.text = "00:00"
+        lblContador.textFill = Color.web("#FF4444")
+        alAgotarTiempo()
     }
 }
