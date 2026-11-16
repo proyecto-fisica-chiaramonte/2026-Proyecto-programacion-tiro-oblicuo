@@ -259,6 +259,54 @@ xychart-beta
 | 36 | 2026-11-13 | `c30c85b` | dqmdz-etec | 3,226 | 45 | 98% | 4.5% | 0 |
 | 37 | 2026-11-14 | `2635230` | dqmdz-etec | 3,226 | 45 | 98% | 4.5% | 0 |
 
+<!-- actividad-clases:inicio -->
+## Actividad en días de clase
+
+> Período evaluado **2026-08-14 → 2026-11-16** · **22 clases** (lunes, viernes) · días de clase del calendario, extendidos hasta la fecha de corte.
+>
+> `Commits` = commits de trabajo (no-merge); `Merges` = merges de PR (también son push). Los días sin actividad dicen **sin actividad**. El cuadro principal usa sólo las fechas de clase del calendario oficial.
+>
+> **Aportes fuera del calendario:** cada alumno tiene un cuadro aparte con las fechas no lectivas con actividad, desde **2026-08-14** hasta **2026-11-16** (ventana de aportes). Esas fechas no forman parte del cuadro principal, pero se muestran para no perder trabajo hecho en fines de semana, feriados o después del período.
+>
+> Se recorre `git log --all` sobre un mirror (todas las ramas y `refs/pull/*`), con deduplicación por commit. Fecha = fecha de autor en UTC-3. Los commits locales no pusheados no se ven. Si el trabajo fue en pareja y el commit es de otra persona, figura a nombre del autor del commit; para reflejarlo, usar `Co-authored-by` o una nota manual.
+>
+> Sección informativa: no modifica el semáforo de aprobación.
+
+### bchiaramonte-ux
+
+**15/22 clases con actividad** · 35 commits · 30 merges
+
+| Fecha | Marca | Repositorios | Commits / merges |
+|---|:--:|---|--:|
+| 2026-08-14 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 1 / 0 |
+| 2026-08-21 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 1 / 0 |
+| 2026-08-24 | No | sin actividad | 0 / 0 |
+| 2026-08-28 | No | sin actividad | 0 / 0 |
+| 2026-08-31 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 2 / 1 |
+| 2026-09-04 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 3 / 2 |
+| 2026-09-07 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 2 / 2 |
+| 2026-09-14 | No | sin actividad | 0 / 0 |
+| 2026-09-25 | No | sin actividad | 0 / 0 |
+| 2026-09-28 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 1 / 1 |
+| 2026-10-02 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 3 / 2 |
+| 2026-10-05 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 3 / 4 |
+| 2026-10-09 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 5 / 5 |
+| 2026-10-16 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 3 / 3 |
+| 2026-10-19 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 2 / 1 |
+| 2026-10-23 | No | sin actividad | 0 / 0 |
+| 2026-10-26 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 1 / 0 |
+| 2026-10-30 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 3 / 4 |
+| 2026-11-02 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 2 / 2 |
+| 2026-11-06 | **Sí** | 2026-Proyecto-programacion-tiro-oblicuo | 3 / 3 |
+| 2026-11-13 | No | sin actividad | 0 / 0 |
+| 2026-11-16 | No | sin actividad | 0 / 0 |
+
+#### Aportes fuera del calendario de clases — bchiaramonte-ux
+
+_Sin aportes fuera del calendario de clases para bchiaramonte-ux._
+
+<!-- actividad-clases:fin -->
+
 ---
 _Informe generado por la cátedra. Los criterios y umbrales de medición corresponden al perfil `exigente` de `calidad.py`; el semáforo de aprobación, a `CRITERIOS-CALIDAD.md` (ver `README.md`). Ante dudas, revisá el archivo señalado._
 <!-- evaluacion:fin -->
