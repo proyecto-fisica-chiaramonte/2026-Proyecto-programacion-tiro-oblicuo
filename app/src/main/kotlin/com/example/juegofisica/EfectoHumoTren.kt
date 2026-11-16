@@ -10,134 +10,78 @@ import kotlin.random.Random
  */
 class EfectoHumoTren {
 
-    /** Coordenadas X de las nubes de humo de carbón y vapor. */
-    private val humoX = mutableListOf<Double>()
+    /** Lista de partículas de humo: cada elemento es [x, y, radio, opacidad, tono]. */
+    private val particulasHumo = mutableListOf<DoubleArray>()
 
-    /** Coordenadas Y de las nubes de humo de carbón y vapor. */
-    private val humoY = mutableListOf<Double>()
-
-    /** Radios actuales de cada nube de humo. */
-    private val humoRadio = mutableListOf<Double>()
-
-    /** Opacidad restante (0.0 a 1.0) de cada nube de humo. */
-    private val humoOpacidad = mutableListOf<Double>()
-
-    /** Tono de gris/negro (0 = hollín negro, 1 = gris oscuro, 2 = vapor gris claro) de cada nube. */
-    private val humoTono = mutableListOf<Int>()
-
-    /** Coordenadas X de partículas de chispas en las ruedas. */
-    private val chispasX = mutableListOf<Double>()
-
-    /** Coordenadas Y de partículas de chispas en las ruedas. */
-    private val chispasY = mutableListOf<Double>()
-
-    /** Velocidades horizontales de las chispas. */
-    private val chispasVx = mutableListOf<Double>()
-
-    /** Velocidades verticales de las chispas. */
-    private val chispasVy = mutableListOf<Double>()
-
-    /** Vida restante (0.0 a 1.0) de las chispas. */
-    private val chispasVida = mutableListOf<Double>()
+    /** Lista de partículas de chispas: cada elemento es [x, y, vx, vy, vida]. */
+    private val particulasChispas = mutableListOf<DoubleArray>()
 
     /**
      * Actualiza la emisión continua y el movimiento de humo y chispas según la posición del tren.
      */
-    fun actualizar(delta: Double, xTren: Double, yTren: Double, estado: Int) {
-        val xBocaChimenea = xTren + 111.0
-        val yBocaChimenea = yTren - 46.0
-
-        val cantidadHumo = (estado + 2).coerceIn(2, 4)
-        emitirHumoChimenea(xBocaChimenea, yBocaChimenea, cantidadHumo)
-
-        if (estado == 0 && Random.nextDouble() < 0.4) {
-            emitirChispasRuedas(xTren + 90.0, yTren - 2.0, 2)
-        } else if (estado == 1) {
-            emitirChispasRuedas(xTren + 95.0, yTren - 2.0, 4)
-        } else if (estado == 2) {
-            emitirChispasRuedas(xTren + 105.0, yTren - 4.0, 7)
+    fun actualizar(delta: Double, posicionTren: DoubleArray, estado: Int) {
+        val xTren = posicionTren[0]
+        val yTren = posicionTren[1]
+        emitirHumoChimenea(xTren + 111.0, yTren - 46.0, (estado + 2).coerceIn(2, 4))
+        if (estado > 0 || Random.nextDouble() < 0.4) {
+            emitirChispasRuedas(xTren + 95.0, yTren - 2.0, if (estado == 2) 6 else 2)
         }
-
-        val velocidadVientoX = if (estado == 2) 115.0 else 82.0
-        avanzarHumo(delta, velocidadVientoX)
-        avanzarChispas(delta)
+        avanzarParticulas(delta, if (estado == 2) 115.0 else 82.0)
     }
 
     /**
      * Renderiza las nubes de humo negro/gris y las chispas metálicas sobre el lienzo.
      */
     fun dibujar(gc: GraphicsContext) {
-        for (j in humoOpacidad.indices) {
-            val r = humoRadio[j]
-            val opacidad = humoOpacidad[j].coerceIn(0.0, 1.0)
-            gc.fill = when (humoTono[j]) {
-                0 -> Color.rgb(22, 22, 25, opacidad * 0.78)
-                1 -> Color.rgb(58, 60, 64, opacidad * 0.68)
-                else -> Color.rgb(120, 124, 130, opacidad * 0.55)
-            }
-            gc.fillOval(humoX[j] - r, humoY[j] - r, r * 2.0, r * 2.0)
+        for (h in particulasHumo) {
+            val r = h[2]
+            val op = h[3].coerceIn(0.0, 1.0)
+            gc.fill = if (h[4] < 0.5) Color.rgb(22, 22, 25, op * 0.78) else Color.rgb(80, 84, 90, op * 0.62)
+            gc.fillOval(h[0] - r, h[1] - r, r * 2.0, r * 2.0)
         }
-
-        for (i in chispasVida.indices) {
-            val vida = chispasVida[i].coerceIn(0.0, 1.0)
+        for (c in particulasChispas) {
+            val vida = c[4].coerceIn(0.0, 1.0)
             gc.fill = Color.rgb(255, (165 * vida).toInt() + 75, 20, vida)
-            gc.fillOval(chispasX[i], chispasY[i], 3.0, 3.0)
+            gc.fillOval(c[0], c[1], 3.0, 3.0)
         }
     }
 
     private fun emitirHumoChimenea(x: Double, y: Double, cantidad: Int) {
         for (i in 0 until cantidad) {
-            humoX.add(x + Random.nextDouble(-3.0, 3.0))
-            humoY.add(y + Random.nextDouble(-2.0, 2.0))
-            humoRadio.add(Random.nextDouble(5.0, 10.0))
-            humoOpacidad.add(0.85)
-            humoTono.add(Random.nextInt(0, 3))
+            particulasHumo.add(
+                doubleArrayOf(
+                    x + Random.nextDouble(-3.0, 3.0),
+                    y + Random.nextDouble(-2.0, 2.0),
+                    Random.nextDouble(5.0, 10.0),
+                    0.85,
+                    Random.nextInt(0, 2).toDouble()
+                )
+            )
         }
     }
 
     private fun emitirChispasRuedas(x: Double, y: Double, cantidad: Int) {
         for (i in 0 until cantidad) {
-            chispasX.add(x + Random.nextDouble(-4.0, 4.0))
-            chispasY.add(y + Random.nextDouble(-2.0, 2.0))
-            chispasVx.add(Random.nextDouble(-125.0, -35.0))
-            chispasVy.add(Random.nextDouble(-85.0, -10.0))
-            chispasVida.add(1.0)
+            particulasChispas.add(
+                doubleArrayOf(
+                    x + Random.nextDouble(-4.0, 4.0),
+                    y + Random.nextDouble(-2.0, 2.0),
+                    Random.nextDouble(-125.0, -35.0),
+                    Random.nextDouble(-85.0, -10.0),
+                    1.0
+                )
+            )
         }
     }
 
-    private fun avanzarHumo(delta: Double, velocidadVientoX: Double) {
-        var j = humoOpacidad.size - 1
-        while (j >= 0) {
-            humoY[j] -= 32.0 * delta
-            humoX[j] -= velocidadVientoX * delta
-            humoRadio[j] += 14.0 * delta
-            humoOpacidad[j] -= delta * 0.62
-            if (humoOpacidad[j] <= 0.0) {
-                humoX.removeAt(j)
-                humoY.removeAt(j)
-                humoRadio.removeAt(j)
-                humoOpacidad.removeAt(j)
-                humoTono.removeAt(j)
-            }
-            j--
+    private fun avanzarParticulas(delta: Double, velocidadVientoX: Double) {
+        particulasHumo.forEach { h ->
+            h[0] -= velocidadVientoX * delta; h[1] -= 32.0 * delta; h[2] += 14.0 * delta; h[3] -= delta * 0.62
         }
-    }
-
-    private fun avanzarChispas(delta: Double) {
-        var i = chispasVida.size - 1
-        while (i >= 0) {
-            chispasX[i] += chispasVx[i] * delta
-            chispasY[i] += chispasVy[i] * delta
-            chispasVy[i] += 180.0 * delta
-            chispasVida[i] -= delta * 2.4
-            if (chispasVida[i] <= 0.0) {
-                chispasX.removeAt(i)
-                chispasY.removeAt(i)
-                chispasVx.removeAt(i)
-                chispasVy.removeAt(i)
-                chispasVida.removeAt(i)
-            }
-            i--
+        particulasHumo.removeAll { it[3] <= 0.0 }
+        particulasChispas.forEach { c ->
+            c[0] += c[2] * delta; c[1] += c[3] * delta; c[3] += 180.0 * delta; c[4] -= delta * 2.4
         }
+        particulasChispas.removeAll { it[4] <= 0.0 }
     }
 }
